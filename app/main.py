@@ -92,7 +92,15 @@ async def widget_js():
 # ---------- 运维 ----------
 
 def _check_admin(request: Request):
-    if request.client and request.client.host in ("127.0.0.1", "::1", "testclient"):
+    # 信任来源:回环 + 内网网段(端口仅绑 127.0.0.1:8898,宿主机经 docker-proxy
+    # 转发后来源显示为网桥网关 172.x.0.1,故需放行私网段);或 Basic Auth。
+    host = (request.client.host or "") if request.client else ""
+    try:
+        trusted = host in ("127.0.0.1", "::1", "testclient") or \
+            __import__("ipaddress").ip_address(host).is_private
+    except ValueError:
+        trusted = False
+    if trusted:
         return
     if settings.alert_user and settings.alert_pass:
         auth = request.headers.get("Authorization", "")

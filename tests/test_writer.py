@@ -65,7 +65,10 @@ def test_tag_fallback_on_silent_rejection():
         def __init__(self):
             self.calls = []
 
-        async def tags(self, name):
+        def token_for(self, rid):
+            return "tok-guest"
+
+        async def tags(self, name, token=None):
             return [{"id": 2, "name": name}]  # 同名 tag 是别人的
 
         async def attach_tag(self, rid, tag_id):
@@ -75,8 +78,8 @@ def test_tag_fallback_on_silent_rejection():
                         "errors": ["No access to tag 2"]}
             return {"success": True, "added_tags": [{"id": tag_id}]}
 
-        async def create_tag(self, name, color):
-            self.calls.append(("create", name))
+        async def create_tag(self, name, color, token=None):
+            self.calls.append(("create", name, token))
             return {"id": 7}
 
         async def recording(self, rid):
@@ -99,7 +102,7 @@ def test_tag_fallback_on_silent_rejection():
              "text": "seminar text", "term": "seminar"}]
     max_level = asyncio.run(writer.write_tags_and_notes(sp, 13, hits, "en"))
     assert max_level == "L3"
-    seq = [c[0] for c in sp.calls]
-    assert "create" in seq                    # 静默拒绝后创建自己的 tag
+    creates = [c for c in sp.calls if c[0] == "create"]
+    assert creates and creates[0][2] == "tok-guest"  # create 用录音 token 的视角
     assert ("attach", 7) in sp.calls          # 用新 tag 重挂
-    assert "notes" in seq                     # 备注照常写入
+    assert "notes" in [c[0] for c in sp.calls]  # 备注照常写入

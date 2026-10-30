@@ -84,11 +84,27 @@ class SpeakrClient:
     async def put_notes(self, rid: int, notes: str):
         return await self._req("PUT", f"/api/v1/recordings/{rid}/notes", {"notes": notes})
 
-    async def tags(self, name: str) -> list:
+    async def tags(self, name: str, token: str = None) -> list:
+        """tag 列表按 token 视角返回(/tags 路径不含录音 id,无法自动轮换,
+        必须显式指定用哪个账号看——同名 tag 在不同账号下是不同的)。"""
+        if token:
+            async with httpx.AsyncClient(base_url=self.base, headers=self._headers(token),
+                                         timeout=self._timeout) as c:
+                r = await c.get(f"/api/v1/tags?name={name}")
+                if r.status_code >= 400:
+                    raise RuntimeError(f"GET /tags -> HTTP {r.status_code}: {r.text[:200]}")
+                return (r.json() if r.content else {}).get("tags") or []
         d = await self._req("GET", f"/api/v1/tags?name={name}")
         return d.get("tags") or []
 
-    async def create_tag(self, name: str, color: str) -> dict:
+    async def create_tag(self, name: str, color: str, token: str = None) -> dict:
+        if token:
+            async with httpx.AsyncClient(base_url=self.base, headers=self._headers(token),
+                                         timeout=self._timeout) as c:
+                r = await c.post("/api/v1/tags", content=json.dumps({"name": name, "color": color}).encode("utf-8"))
+                if r.status_code >= 400:
+                    raise RuntimeError(f"POST /tags -> HTTP {r.status_code}: {r.text[:200]}")
+                return r.json() if r.content else {}
         return await self._req("POST", "/api/v1/tags", {"name": name, "color": color})
 
     async def attach_tag(self, rid: int, tag_id: int):

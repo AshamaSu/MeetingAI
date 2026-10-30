@@ -46,19 +46,28 @@ async def _attach_with_fallback(speakr, rid: int, level: str) -> int:
     """
     tag_id = None
     resp = None
-    tags = await speakr.tags(TAG_NAMES[level])
+    tok = speakr.token_for(rid)  # 检测该录音时确定可用的账号,tag 操作必须同一账号视角
+    tags = await speakr.tags(TAG_NAMES[level], token=tok)
     if tags:
         tag_id = tags[0]["id"]
         resp = await speakr.attach_tag(rid, tag_id)
         if resp.get("success") and resp.get("added_tags"):
             return tag_id
-    made = await speakr.create_tag(TAG_NAMES[level], TAG_COLORS[level])
-    new_id = made.get("id")
-    if new_id and new_id != tag_id:
-        resp = await speakr.attach_tag(rid, new_id)
-        if resp.get("success") and resp.get("added_tags"):
-            return new_id
-    raise RuntimeError(f"tag attach rejected: {resp}")
+    try:
+        made = await speakr.create_tag(TAG_NAMES[level], TAG_COLORS[level], token=tok)
+        tag_id = made.get("id")
+    except RuntimeError as e:
+        if "already exists" not in str(e):
+            raise
+        # 同账号下已存在(可能被并发创建)→ 用同一视角重新取
+        tags = await speakr.tags(TAG_NAMES[level], token=tok)
+        tag_id = tags[0]["id"] if tags else None
+    if not tag_id:
+        raise RuntimeError(f"cannot resolve tag {TAG_NAMES[level]}: {resp}")
+    resp = await speakr.attach_tag(rid, tag_id)
+    if not (resp.get("success") and resp.get("added_tags")):
+        raise RuntimeError(f"tag attach rejected: {resp}")
+    return tag_id
 
 
 async def write_tags_and_notes(speakr, rid: int, hits, lang: str = "zh"):

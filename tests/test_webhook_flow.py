@@ -24,17 +24,17 @@ class FakeSpeakr:
     async def recording(self, rid):
         return {"tags": []}
 
-    async def tags(self, name):
+    async def tags(self, name, token=None):
         return []
 
-    async def create_tag(self, name, color):
+    async def create_tag(self, name, color, token=None):
         return {"id": 1}
 
     async def attach_tag(self, rid, tag_id):
         self.calls.append(("attach", rid, tag_id))
         return {"success": True, "added_tags": [{"id": tag_id, "name": "SW-L1"}]}
 
-    async def create_tag(self, name, color):
+    async def create_tag(self, name, color, token=None):
         self.created_tags = getattr(self, "created_tags", 0) + 1
         return {"id": 100 + self.created_tags}
 
@@ -54,7 +54,7 @@ class FakeSpeakr:
         self.calls.append(("summary", s))
 
     def token_for(self, rid):
-        return None
+        return "test-token"
 
     async def me(self, token=None):
         return {"preferences": {"ui_language": "zh"}}

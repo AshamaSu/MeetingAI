@@ -30,7 +30,7 @@ STATIC_DIR = __file__.rsplit("/", 1)[0] + "/../static"
 @app.on_event("startup")
 async def startup():
     db.init_db(settings.db_path)
-    app.state.speakr = SpeakrClient(settings.speakr_url, settings.speakr_token)
+    app.state.speakr = SpeakrClient(settings.speakr_url, settings.speakr_tokens)
     app.state.lexicon = Lexicon(settings.wordlist_path)
     app.state.worker_task = None
     if settings.worker_enabled:

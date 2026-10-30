@@ -48,7 +48,10 @@ class FakeSpeakr:
     async def put_summary(self, rid, s):
         self.calls.append(("summary", s))
 
-    async def me(self):
+    def token_for(self, rid):
+        return None
+
+    async def me(self, token=None):
         return {"preferences": {"ui_language": "zh"}}
 
 
@@ -123,34 +126,37 @@ def test_full_pipeline(tc):
 
 
 def test_resolve_notice_lang_chain(tc):
-    """owner ui_language → 未知语言回落 NOTIFY_LANG → me() 失败也回落。"""
+    """token 所属用户 ui_language → 未知语言回落 NOTIFY_LANG → me() 失败也回落。"""
     import app.worker as w
     from app.config import settings
 
-    class FakeMe:
-        def __init__(self, lang):
-            self.lang = lang
+    class LangSpeakr:
+        def __init__(self, token_lang):
+            self.token_lang = token_lang  # token -> ui_language
 
-        async def me(self):
-            if self.lang == "__fail__":
+        def token_for(self, rid):
+            return "tok-guest"
+
+        async def me(self, token=None):
+            lang = self.token_lang.get(token)
+            if lang == "__fail__":
                 raise RuntimeError("api down")
-            return {"preferences": {"ui_language": self.lang}}
+            return {"preferences": {"ui_language": lang}}
 
     async def run(lang, notify):
-        w._ui_lang.update({"value": None, "fetched_at": 0.0})
+        w._ui_lang.clear()
         old = settings.notify_lang
         settings.notify_lang = notify
         try:
-            return await w.resolve_notice_lang(settings, FakeMe(lang))
+            return await w.resolve_notice_lang(settings, LangSpeakr({"tok-guest": lang}), 7)
         finally:
             settings.notify_lang = old
-        w._ui_lang["fetched_at"] = 0.0
 
-    assert asyncio.run(run("en", "zh")) == "en"       # ui_language 命中文案
-    assert asyncio.run(run("xx", "zh")) == "zh"       # 未知语言回落配置
-    assert asyncio.run(run(None, "id")) == "id"       # 无值回落配置
+    assert asyncio.run(run("en", "zh")) == "en"        # ui_language 命中文案
+    assert asyncio.run(run("xx", "zh")) == "zh"        # 未知语言回落配置
+    assert asyncio.run(run(None, "id")) == "id"        # 无值回落配置
     assert asyncio.run(run("__fail__", "zh")) == "zh"  # API 失败回落配置
-    w._ui_lang["fetched_at"] = 0.0
+    w._ui_lang.clear()
 
 
 def test_full_pipeline_uses_ui_language(tc):
@@ -161,7 +167,7 @@ def test_full_pipeline_uses_ui_language(tc):
                    ).status_code == 202
 
     class EnSpeakr(FakeSpeakr):
-        async def me(self):
+        async def me(self, token=None):
             return {"preferences": {"ui_language": "en"}}
 
     fake = EnSpeakr()

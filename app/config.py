@@ -21,7 +21,11 @@ _load_env()
 class Settings:
     def __init__(self):
         self.speakr_url = os.environ.get("SPEAKR_URL", "http://127.0.0.1:8899").rstrip("/")
-        self.speakr_token = os.environ.get("SPEAKR_TOKEN", "")
+        # 多账号:逗号分隔的 token 列表(每个对应一个 speakr 用户),
+        # 请求 403/401 时自动换下一个;单账号用 SPEAKR_TOKEN 即可
+        self.speakr_tokens = [t.strip() for t in os.environ.get("SPEAKR_TOKENS", "").split(",") if t.strip()]
+        if not self.speakr_tokens:
+            self.speakr_tokens = [os.environ.get("SPEAKR_TOKEN", "")]
         # Webhook secret(s)：创建 webhook 时只返回一次；轮换宽限期可配 previous
         self.webhook_secret = os.environ.get("WEBHOOK_SECRET", "")
         self.webhook_secret_previous = os.environ.get("WEBHOOK_SECRET_PREVIOUS", "")
@@ -49,10 +53,12 @@ class Settings:
 
     @property
     def webhook_secrets(self):
+        """全部接受的 webhook secret:主 secret + 轮换宽限 + 多用户追加(csv)。"""
+        extra = [s.strip() for s in os.environ.get("WEBHOOK_SECRETS", "").split(",") if s.strip()]
         s = [self.webhook_secret]
         if self.webhook_secret_previous:
             s.append(self.webhook_secret_previous)
-        return [x for x in s if x]
+        return [x for x in s + extra if x]
 
 
 settings = Settings()

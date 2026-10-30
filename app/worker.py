@@ -8,22 +8,26 @@ import traceback
 from . import db, detector, i18n, writer
 
 
-# owner 界面语言缓存(300s),避免每个 job 都打 /users/me
-_ui_lang = {"value": None, "fetched_at": 0.0}
+# 提示文案语言缓存：按 token（即按 speakr 用户）缓存 300s，避免每个 job 都打 /users/me
+_ui_lang = {}
 
 
-async def resolve_notice_lang(settings, speakr) -> str:
-    """提示文案语言:owner 的 ui_language(users/me)→ NOTIFY_LANG 兜底。
-    ui_language 取值不在 i18n 文案集合里时同样回落,不设准入限制。"""
+async def resolve_notice_lang(settings, speakr, rid: int) -> str:
+    """提示文案语言：录音可用 token 所属用户的 ui_language → NOTIFY_LANG 兜底。
+    ui_language 取值不在 i18n 文案集合里时同样回落，不设准入限制。"""
+    tok = speakr.token_for(rid)
+    key = (tok or (settings.speakr_tokens[0] if settings.speakr_tokens else "?"))[:12]
     now = time.time()
-    if now - _ui_lang["fetched_at"] > 300:
+    cached = _ui_lang.get(key)
+    if cached and now - cached["at"] <= 300:
+        lang = cached["value"]
+    else:
         try:
-            prefs = (await speakr.me()).get("preferences") or {}
-            _ui_lang["value"] = prefs.get("ui_language")
+            prefs = (await speakr.me(tok)).get("preferences") or {}
+            lang = prefs.get("ui_language")
         except Exception:
-            _ui_lang["value"] = None
-        _ui_lang["fetched_at"] = now
-    lang = _ui_lang["value"]
+            lang = None
+        _ui_lang[key] = {"value": lang, "at": now}
     return lang if lang in i18n.LOCALES else settings.notify_lang
 
 
@@ -43,8 +47,8 @@ async def process_job(settings, speakr, lexicon, job) -> None:
             db.save_alerts(con, hits)
             db.save_scan(con, rid, len(hits),
                          min((h["level"] for h in hits), default=None))
+        lang = await resolve_notice_lang(settings, speakr, rid)
         if hits:
-            lang = await resolve_notice_lang(settings, speakr)
             await writer.write_tags_and_notes(speakr, rid, hits, lang)
         # B8 兜底：summary 已存在则同步追加清单；尚未生成 → 交给 summary.completed
         try:
@@ -53,7 +57,7 @@ async def process_job(settings, speakr, lexicon, job) -> None:
             return
         with db.connect(settings.db_path) as con:
             alerts = [dict(r) for r in db.alerts_for(con, rid)]
-        block = writer.build_summary_block(alerts, await resolve_notice_lang(settings, speakr))
+        block = writer.build_summary_block(alerts, lang)
         await speakr.put_summary(rid, writer.upsert_summary(summary, block))
 
     elif event == "recording.summary.completed":
@@ -64,7 +68,7 @@ async def process_job(settings, speakr, lexicon, job) -> None:
             # 转写完成与总结生成几乎同时触发，检测可能还没跑完 → 延迟重试
             raise RetryLater("detection not finished yet, will retry")
         summary = await speakr.summary(rid)
-        block = writer.build_summary_block(alerts, await resolve_notice_lang(settings, speakr))
+        block = writer.build_summary_block(alerts, await resolve_notice_lang(settings, speakr, rid))
         await speakr.put_summary(rid, writer.upsert_summary(summary, block))
 
     else:

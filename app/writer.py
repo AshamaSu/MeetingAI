@@ -5,7 +5,9 @@ import time
 NL = chr(10)
 
 LEVELS = ("L1", "L2", "L3")
-TAG_NAMES = {lv: f"敏感词-{lv}" for lv in LEVELS}
+TAG_NAMES = {"L1": "SW-L1", "L2": "SW-L2", "L3": "SW-L3"}  # 列表页展示用简短英文
+# lite 时代遗留的中文标签名：回写时一并摘除，避免双标签并存
+LEGACY_TAG_NAMES = {"敏感词-L1", "敏感词-L2", "敏感词-L3"}
 TAG_COLORS = {"L1": "#dc2626", "L2": "#ea580c", "L3": "#ca8a04"}
 
 SUMMARY_START = "<!-- sensitive-filter:summary:start -->"
@@ -41,7 +43,8 @@ async def write_tags_and_notes(speakr, rid: int, hits):
     tag_id = await ensure_tag(speakr, max_level)
     detail = await speakr.recording(rid)
     for t in detail.get("tags") or []:
-        if t.get("name") in TAG_NAMES.values() and t["id"] != tag_id:
+        if (t.get("name") in TAG_NAMES.values() or t.get("name") in LEGACY_TAG_NAMES) \
+                and t["id"] != tag_id:
             await speakr.detach_tag(rid, t["id"])
     await speakr.attach_tag(rid, tag_id)
     if max_level == "L1":

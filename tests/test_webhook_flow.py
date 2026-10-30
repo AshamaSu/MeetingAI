@@ -32,6 +32,11 @@ class FakeSpeakr:
 
     async def attach_tag(self, rid, tag_id):
         self.calls.append(("attach", rid, tag_id))
+        return {"success": True, "added_tags": [{"id": tag_id, "name": "SW-L1"}]}
+
+    async def create_tag(self, name, color):
+        self.created_tags = getattr(self, "created_tags", 0) + 1
+        return {"id": 100 + self.created_tags}
 
     async def patch_recording(self, rid, **kw):
         self.calls.append(("patch", rid, kw))

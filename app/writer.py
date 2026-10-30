@@ -37,27 +37,47 @@ def fmt_ts(sec):
 
 # ---------- 标签 ----------
 
-async def ensure_tag(speakr, level: str) -> int:
-    name = TAG_NAMES[level]
-    tags = await speakr.tags(name)
+async def _attach_with_fallback(speakr, rid: int, level: str) -> int:
+    """挂标签（多账号安全）。
+
+    坑：speakr 的 GET /tags?name= 会跨用户匹配同名 tag，但 attach 别人的 tag
+    时返回 HTTP 200 + {"success":true,"errors":["No access to tag N"],"added_tags":[]}
+    —— 静默失败。因此 attach 后必须校验 added_tags，被拒则创建自己的同名 tag 重挂。
+    """
+    tag_id = None
+    resp = None
+    tags = await speakr.tags(TAG_NAMES[level])
     if tags:
-        return tags[0]["id"]
-    made = await speakr.create_tag(name, TAG_COLORS[level])
-    return made["id"]
+        tag_id = tags[0]["id"]
+        resp = await speakr.attach_tag(rid, tag_id)
+        if resp.get("success") and resp.get("added_tags"):
+            return tag_id
+    made = await speakr.create_tag(TAG_NAMES[level], TAG_COLORS[level])
+    new_id = made.get("id")
+    if new_id and new_id != tag_id:
+        resp = await speakr.attach_tag(rid, new_id)
+        if resp.get("success") and resp.get("added_tags"):
+            return new_id
+    raise RuntimeError(f"tag attach rejected: {resp}")
 
 
 async def write_tags_and_notes(speakr, rid: int, hits, lang: str = "zh"):
     """挂最高级别标签 + 写备注块（复用 lite 的备注块格式，widget 兼容）。"""
     max_level = min(h["level"] for h in hits)  # L1 < L2 < L3
-    tag_id = await ensure_tag(speakr, max_level)
+    tag_id = await _attach_with_fallback(speakr, rid, max_level)
     detail = await speakr.recording(rid)
     for t in detail.get("tags") or []:
         if (t.get("name") in TAG_NAMES.values() or t.get("name") in LEGACY_TAG_NAMES) \
                 and t["id"] != tag_id:
-            await speakr.detach_tag(rid, t["id"])
-    await speakr.attach_tag(rid, tag_id)
+            try:
+                await speakr.detach_tag(rid, t["id"])
+            except Exception:
+                pass  # 别人的 tag 无权摘除，忽略（标签本身已替换）
     if max_level == "L1":
-        await speakr.patch_recording(rid, is_highlighted=True)
+        try:
+            await speakr.patch_recording(rid, is_highlighted=True)
+        except Exception:
+            pass  # 尽力而为
 
     hits_sorted = sorted(hits, key=lambda h: (h["level"], h.get("start_time") or 0))
     lines = [i18n.t("alert_title", lang).format(

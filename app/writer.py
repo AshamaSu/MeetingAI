@@ -1,6 +1,10 @@
-"""回写层：标签 / 备注块 / 总结清单块（B8 幂等块替换）。"""
+"""回写层：标签 / 备注块 / 总结清单块（B8 幂等块替换）。
+文案语言由调用方传入（owner 的 ui_language，回退 NOTIFY_LANG），见 app/i18n.py。
+"""
 import json
 import time
+
+from . import i18n
 
 NL = chr(10)
 
@@ -16,6 +20,11 @@ NOTES_START = "<!-- sensitive-lite:start -->"
 NOTES_END = "<!-- sensitive-lite:end -->"
 DATA_START = "<!-- sensitive-lite:data "
 DATA_END = "-->"
+
+
+def _paren(s: str, lang: str) -> str:
+    """注释性文字的括号样式：中文全角，其他半角。"""
+    return ("（" + s + "）") if lang == "zh" else (" (" + s + ")")
 
 
 def fmt_ts(sec):
@@ -37,7 +46,7 @@ async def ensure_tag(speakr, level: str) -> int:
     return made["id"]
 
 
-async def write_tags_and_notes(speakr, rid: int, hits):
+async def write_tags_and_notes(speakr, rid: int, hits, lang: str = "zh"):
     """挂最高级别标签 + 写备注块（复用 lite 的备注块格式，widget 兼容）。"""
     max_level = min(h["level"] for h in hits)  # L1 < L2 < L3
     tag_id = await ensure_tag(speakr, max_level)
@@ -51,12 +60,14 @@ async def write_tags_and_notes(speakr, rid: int, hits):
         await speakr.patch_recording(rid, is_highlighted=True)
 
     hits_sorted = sorted(hits, key=lambda h: (h["level"], h.get("start_time") or 0))
-    lines = [f"⚠ 敏感词提示 {time.strftime('%Y-%m-%d %H:%M')} — 命中 {len(hits_sorted)} 处（最高 {max_level}）"]
+    lines = [i18n.t("alert_title", lang).format(
+        ts=time.strftime('%Y-%m-%d %H:%M'), n=len(hits_sorted), level=max_level)]
     for h in hits_sorted[:20]:
         lines.append(f'- [{h["level"]}] {fmt_ts(h.get("start_time"))} {h.get("speaker") or "—"}: '
-                     f'“{(h.get("text") or "")[:80]}”（词: {h["term"]}）')
+                     f'“{(h.get("text") or "")[:80]}”'
+                     + _paren(i18n.t("hit_label", lang).format(term=h["term"]), lang))
     if len(hits_sorted) > 20:
-        lines.append(f"…共 {len(hits_sorted)} 处，其余见审计日志")
+        lines.append(i18n.t("overflow", lang).format(n=len(hits_sorted)))
     data = {"rid": rid, "hits": [
         {"i": h.get("segment_index"), "l": h["level"],
          "w": (h["term"] or "").replace("--", "-"), "v": [h.get("matched")] if h.get("matched") else [],
@@ -75,18 +86,20 @@ async def write_tags_and_notes(speakr, rid: int, hits):
 
 # ---------- 总结清单块（B8） ----------
 
-def build_summary_block(hits) -> str:
+def build_summary_block(hits, lang: str = "zh") -> str:
     """hits 为空 → 返回 ''（调用方删除残留块）。"""
     if not hits:
         return ""
     hits_sorted = sorted(hits, key=lambda h: (h["level"], h.get("start_time") or 0))
     lines = [SUMMARY_START,
-             f"## ⚠️ 敏感词涉及语句清单（生成于 {time.strftime('%Y-%m-%d %H:%M')}，共 {len(hits_sorted)} 处）"]
+             i18n.t("summary_heading", lang).format(
+                 ts=time.strftime('%Y-%m-%d %H:%M'), n=len(hits_sorted))]
     for h in hits_sorted:
-        src = "（LLM 判定）" if h.get("source") == "llm" else ""
+        src = _paren(i18n.t("llm_verdict", lang), lang) if h.get("source") == "llm" else ""
         snippet = (h.get("snippet") or h.get("text") or "")[:80]
         lines.append(f'- **[{h["level"]}]** {fmt_ts(h.get("start_time"))} '
-                     f'{h.get("speaker") or "—"}:“{snippet}”（命中：{h["term"]}）{src}')
+                     f'{h.get("speaker") or "—"}:“{snippet}”'
+                     + _paren(i18n.t("hit_label", lang).format(term=h["term"]), lang) + src)
     lines.append(SUMMARY_END)
     return NL.join(lines)
 

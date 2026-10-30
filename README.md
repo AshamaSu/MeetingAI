@@ -48,3 +48,10 @@ wordlists/sensitive.csv（volume 挂载，按 mtime 热加载）：
 - 重试：时序未就绪 30s 固定重试；其他错误指数退避（30s→600s 封顶），超限标 dead
 - 降级：LLM 失败/非法 JSON/置信度<0.6 → 保留纯词表命中，检测不中断
 - 自愈：总结重新生成自动重追加清单；零命中自动删除残留块；重扫替换旧命中
+
+## 多语言
+
+- 提示文案（备注块/总结清单）语言 = owner 的 `users/me.preferences.ui_language`（缓存 300s）
+- 支持 zh/en/id/de/es/fr/pt/ru；ui_language 未覆盖时回落 `NOTIFY_LANG`（默认 zh）
+- 标签 SW-L1/L2/L3 语言中立；机器可读数据块与语言无关，widget 高亮不受影响
+- 词表远程管理：GET/PUT /wordlist（校验+原子替换+.bak）、POST /rescan-all 全量重扫

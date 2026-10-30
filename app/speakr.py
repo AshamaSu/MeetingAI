@@ -18,6 +18,9 @@ class SpeakrClient:
             r.raise_for_status()
             return r.json() if r.content else {}
 
+    async def me(self) -> dict:
+        return await self._req("GET", "/api/v1/users/me")
+
     async def transcript(self, rid: int) -> dict:
         return await self._req("GET", f"/api/v1/recordings/{rid}/transcript?format=json")
 

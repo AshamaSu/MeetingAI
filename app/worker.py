@@ -2,9 +2,29 @@
 重试策略：检测未完成等时序类错误用固定 30s；其他错误指数退避 30*2^n 封顶 600s。
 """
 import asyncio
+import time
 import traceback
 
-from . import db, detector, writer
+from . import db, detector, i18n, writer
+
+
+# owner 界面语言缓存(300s),避免每个 job 都打 /users/me
+_ui_lang = {"value": None, "fetched_at": 0.0}
+
+
+async def resolve_notice_lang(settings, speakr) -> str:
+    """提示文案语言:owner 的 ui_language(users/me)→ NOTIFY_LANG 兜底。
+    ui_language 取值不在 i18n 文案集合里时同样回落,不设准入限制。"""
+    now = time.time()
+    if now - _ui_lang["fetched_at"] > 300:
+        try:
+            prefs = (await speakr.me()).get("preferences") or {}
+            _ui_lang["value"] = prefs.get("ui_language")
+        except Exception:
+            _ui_lang["value"] = None
+        _ui_lang["fetched_at"] = now
+    lang = _ui_lang["value"]
+    return lang if lang in i18n.LOCALES else settings.notify_lang
 
 
 class RetryLater(Exception):
@@ -24,7 +44,8 @@ async def process_job(settings, speakr, lexicon, job) -> None:
             db.save_scan(con, rid, len(hits),
                          min((h["level"] for h in hits), default=None))
         if hits:
-            await writer.write_tags_and_notes(speakr, rid, hits)
+            lang = await resolve_notice_lang(settings, speakr)
+            await writer.write_tags_and_notes(speakr, rid, hits, lang)
         # B8 兜底：summary 已存在则同步追加清单；尚未生成 → 交给 summary.completed
         try:
             summary = await speakr.summary(rid)
@@ -32,7 +53,7 @@ async def process_job(settings, speakr, lexicon, job) -> None:
             return
         with db.connect(settings.db_path) as con:
             alerts = [dict(r) for r in db.alerts_for(con, rid)]
-        block = writer.build_summary_block(alerts)
+        block = writer.build_summary_block(alerts, await resolve_notice_lang(settings, speakr))
         await speakr.put_summary(rid, writer.upsert_summary(summary, block))
 
     elif event == "recording.summary.completed":
@@ -43,7 +64,7 @@ async def process_job(settings, speakr, lexicon, job) -> None:
             # 转写完成与总结生成几乎同时触发，检测可能还没跑完 → 延迟重试
             raise RetryLater("detection not finished yet, will retry")
         summary = await speakr.summary(rid)
-        block = writer.build_summary_block(alerts)
+        block = writer.build_summary_block(alerts, await resolve_notice_lang(settings, speakr))
         await speakr.put_summary(rid, writer.upsert_summary(summary, block))
 
     else:

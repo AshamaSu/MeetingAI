@@ -43,6 +43,8 @@ class Settings:
         # /alerts 看板 Basic Auth；留空则不启用看板
         self.alert_user = os.environ.get("ALERT_USER", "")
         self.alert_pass = os.environ.get("ALERT_PASS", "")
+        # 提示文案语言（notes/summary 块；speakr UI 语言：zh/en/de/es/fr/pt/ru）
+        self.notify_lang = os.environ.get("NOTIFY_LANG", "zh")
         self.port = int(os.environ.get("PORT", "8898"))
 
     @property

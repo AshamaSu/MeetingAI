@@ -48,6 +48,9 @@ class FakeSpeakr:
     async def put_summary(self, rid, s):
         self.calls.append(("summary", s))
 
+    async def me(self):
+        return {"preferences": {"ui_language": "zh"}}
+
 
 @pytest.fixture()
 def tc():
@@ -117,6 +120,59 @@ def test_full_pipeline(tc):
     r = tc.get("/hits", params={"recording_id": 7})
     hits = r.json()["hits"]
     assert len(hits) == 1 and hits[0]["w"] == "武器" and hits[0]["l"] == "L1"
+
+
+def test_resolve_notice_lang_chain(tc):
+    """owner ui_language → 未知语言回落 NOTIFY_LANG → me() 失败也回落。"""
+    import app.worker as w
+    from app.config import settings
+
+    class FakeMe:
+        def __init__(self, lang):
+            self.lang = lang
+
+        async def me(self):
+            if self.lang == "__fail__":
+                raise RuntimeError("api down")
+            return {"preferences": {"ui_language": self.lang}}
+
+    async def run(lang, notify):
+        w._ui_lang.update({"value": None, "fetched_at": 0.0})
+        old = settings.notify_lang
+        settings.notify_lang = notify
+        try:
+            return await w.resolve_notice_lang(settings, FakeMe(lang))
+        finally:
+            settings.notify_lang = old
+        w._ui_lang["fetched_at"] = 0.0
+
+    assert asyncio.run(run("en", "zh")) == "en"       # ui_language 命中文案
+    assert asyncio.run(run("xx", "zh")) == "zh"       # 未知语言回落配置
+    assert asyncio.run(run(None, "id")) == "id"       # 无值回落配置
+    assert asyncio.run(run("__fail__", "zh")) == "zh"  # API 失败回落配置
+    w._ui_lang["fetched_at"] = 0.0
+
+
+def test_full_pipeline_uses_ui_language(tc):
+    """ui_language=en 时,整条管线产出的备注/清单是英文。"""
+    body = payload("d30", rid=8)
+    assert tc.post("/hooks/speakr", content=body,
+                   headers=signed_headers(body, "d30", "recording.transcription.completed")
+                   ).status_code == 202
+
+    class EnSpeakr(FakeSpeakr):
+        async def me(self):
+            return {"preferences": {"ui_language": "en"}}
+
+    fake = EnSpeakr()
+    with db.connect(settings.db_path) as con:
+        job = next(j for j in db.due_jobs(con, settings.max_attempts) if j["delivery_id"] == "d30")
+    asyncio.run(worker.process_job(settings, fake, app.state.lexicon, job))
+
+    summary = next(c[1] for c in fake.calls if c[0] == "summary")
+    assert "Sensitive-word sentence list" in summary
+    notes = next(c[1] for c in fake.calls if c[0] == "notes")
+    assert "Sensitive-word alert" in notes
 
 
 def test_summary_event_waits_for_scan(tc):

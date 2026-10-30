@@ -37,3 +37,20 @@ def test_upsert_remove_when_no_hits():
     cleaned = upsert_summary(with_block, "")  # 零命中自愈：删残留块
     assert SUMMARY_START not in cleaned
     assert cleaned.strip() == "正文"
+
+
+def test_summary_block_lang_en():
+    block = build_summary_block([HIT], lang="en")
+    assert "Sensitive-word sentence list" in block
+    assert " (hit: 武器)" in block
+    assert block.startswith(SUMMARY_START) and block.endswith(SUMMARY_END)
+
+
+def test_summary_block_lang_id():
+    block = build_summary_block([HIT], lang="id")
+    assert "Daftar kalimat" in block and "temuan: 武器" in block
+
+
+def test_summary_block_paren_style():
+    assert "（命中：武器）" in build_summary_block([HIT], lang="zh")
+    assert " (hit: 武器)" in build_summary_block([HIT], lang="en")

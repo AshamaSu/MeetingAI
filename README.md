@@ -1,0 +1,50 @@
+# speakr-sensitive-filter
+
+speakr 敏感词提示 — Part B 完整版（Webhook 秒级触发 + 词表/LLM 双层检测 + 标签/备注/总结回写 + 气泡高亮）。独立于 Part A（speakr-sensitive-lite，保持不动）；验证后由本服务接管触发层。
+
+设计文档：仓库外 docs/敏感词处理方案.md（Part B / B7 / B8）。
+
+## 架构
+
+- POST /hooks/speakr — 接收 speakr Webhook（HMAC V2 验签 + Delivery-Id 幂等 + 立即 202）
+- 后台 worker — 拉转写 → 词表粗筛 →（可选）LLM 精判 → SQLite 落库 → 回写标签/备注 → 总结追加清单
+- GET /hits?recording_id=N — 命中查询（widget 数据源）
+- GET /widget.js — 气泡高亮脚本（语句级竖条+角标，关键词级 mark 下划线）
+- POST /scan/{rid} — 手动重扫单条录音
+- GET /alerts — 告警看板（Basic Auth，可选）
+
+## 本地开发
+
+```bash
+cp .env.example .env         # 填入 SPEAKR_TOKEN / WEBHOOK_SECRET
+pip install -r requirements.txt -r requirements-dev.txt
+pytest                       # 测试
+uvicorn app.main:app --port 8898
+```
+
+## 部署（B2，需重启 speakr 一次）
+
+1. 上传本工程到服务器 /data/speakr/sensitive-filter/，填写 .env
+2. compose 追加 sensitive-filter 服务（见 docker-compose.snippet.yml）
+3. speakr .env 追加 WEBHOOK_INTRANET_HOST_ALLOWLIST=^sensitive-filter$
+4. 新建 Token（read,write,webhooks）→ POST /api/v1/webhooks：
+   {"name":"sensitive-filter","url":"http://sensitive-filter:8898/hooks/speakr",
+    "events":["recording.transcription.completed","recording.summary.completed"],
+    "allow_http":true,"enabled":true}
+   secret 只在创建响应返回一次 → 写入本服务 .env
+5. POST /api/v1/webhooks/{id}/test 验签；重转写一条真实录音做端到端验证
+6. widget 注入：见 deploy/loading_overlay.snippet.html（并入已挂载的 loading_overlay.html）
+
+## 词表
+
+wordlists/sensitive.csv（volume 挂载，按 mtime 热加载）：
+列 term,lang,level,category,variants,regex,enabled；兼容 lite words.txt 两列格式。
+印尼语变体手写进 variants（空格分隔）；LLM 兜底词形/委婉/错字。
+
+## 可靠性
+
+- 验签：V2（t+HMAC，±300s 窗口，支持 secret 轮换宽限）→ V1 回退
+- 幂等：delivery_id 主键，speakr 重试投递不重复处理
+- 重试：时序未就绪 30s 固定重试；其他错误指数退避（30s→600s 封顶），超限标 dead
+- 降级：LLM 失败/非法 JSON/置信度<0.6 → 保留纯词表命中，检测不中断
+- 自愈：总结重新生成自动重追加清单；零命中自动删除残留块；重扫替换旧命中

@@ -1,0 +1,18 @@
+﻿# 词表 CSV（B3 全 schema）。列: term,lang,level,category,variants,regex,enabled
+# variants 用空格分隔多个变体（印尼语词根+词形变化手写）；regex 列可留空
+# 首字符为 # 的行为注释；enabled=0 停用
+term,lang,level,category,variants,regex,enabled
+武器,zh,L1,violence,,,1
+枪支,zh,L1,violence,,,1
+毒品,zh,L1,drugs,,,1
+回扣,zh,L2,bribery,,,1
+泄露,zh,L2,security,,,1
+贿赂,zh,L2,bribery,,,1
+suap,id,L2,bribery,menyuap penyuapan disuap terima-suap,,1
+rasuah,id,L2,bribery,,,1
+投诉,zh,L3,complaint,,,1
+komplain,id,L3,complaint,komplainnya dikomplain mengkomplain,,1
+keluhan,id,L3,complaint,,,1
+facade,en,L3,concern,,,1
+illusion,en,L3,concern,,,1
+jargon,en,L3,concern,jargons,,1

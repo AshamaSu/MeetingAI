@@ -58,13 +58,16 @@ async def hooks(request: Request):
         raise HTTPException(status_code=400, detail="invalid json")
     event = payload.get("event") or request.headers.get("Speakr-Event") or ""
     delivery_id = request.headers.get("Speakr-Delivery-Id") or payload.get("id")
+    if not delivery_id:
+        raise HTTPException(status_code=400, detail="missing delivery id")
     rid = (payload.get("data") or {}).get("recording_id")
-    if not delivery_id or not rid:
-        raise HTTPException(status_code=400, detail="missing delivery id or recording_id")
     with db.connect(settings.db_path) as con:
         if db.delivery_seen(con, delivery_id):
             return {"status": "duplicate"}  # 幂等：已收过
         db.save_delivery(con, str(delivery_id), event, body.decode("utf-8", "replace")[:10000])
+        if not rid:
+            # 如 webhook.test 连通性/验签测试事件：验签已过，回 202 但不入检测队列
+            return JSONResponse({"status": "ignored", "event": event}, status_code=202)
         db.enqueue_job(con, str(delivery_id), int(rid), event)
     return JSONResponse({"status": "accepted"}, status_code=202)
 

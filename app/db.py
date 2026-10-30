@@ -151,3 +151,8 @@ def last_scan(con, recording_id: int):
 def recent_alerts(con, limit: int = 200):
     return con.execute(
         "SELECT * FROM alert ORDER BY created_at DESC LIMIT ?", (limit,)).fetchall()
+
+
+def scanned_recording_ids(con) -> list:
+    return [r["recording_id"] for r in
+            con.execute("SELECT DISTINCT recording_id FROM scan ORDER BY recording_id")]

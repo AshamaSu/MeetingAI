@@ -49,12 +49,9 @@ def match_term(t: Term, norm: str) -> bool:
     return any(match_form(f, norm) for f in t.all_forms)
 
 
-def load_wordlist(path: Path):
+def parse_wordlist(text: str) -> list:
     words = []
-    if not path.exists():
-        return words
-    raw = path.read_text(encoding="utf-8-sig").splitlines()
-    lines = [ln for ln in raw if ln.strip() and not ln.strip().startswith("#")]
+    lines = [ln for ln in text.splitlines() if ln.strip() and not ln.strip().startswith("#")]
     is_csv = bool(lines) and lines[0].strip().lower().startswith("term,")
     for ln in lines:
         s = ln.strip()
@@ -80,6 +77,12 @@ def load_wordlist(path: Path):
                 continue
             words.append(Term(term, level))
     return words
+
+
+def load_wordlist(path: Path) -> list:
+    if not Path(path).exists():
+        return []
+    return parse_wordlist(Path(path).read_text(encoding="utf-8-sig"))
 
 
 class Lexicon:

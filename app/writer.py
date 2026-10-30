@@ -40,32 +40,46 @@ def fmt_ts(sec):
 async def _attach_with_fallback(speakr, rid: int, level: str) -> int:
     """挂标签（多账号安全）。
 
-    坑：speakr 的 GET /tags?name= 会跨用户匹配同名 tag，但 attach 别人的 tag
-    时返回 HTTP 200 + {"success":true,"errors":["No access to tag N"],"added_tags":[]}
-    —— 静默失败。因此 attach 后必须校验 added_tags，被拒则创建自己的同名 tag 重挂。
+    坑 1：GET /tags?name= 会跨用户匹配同名 tag，attach 别人的 tag 时返回
+    HTTP 200 + {"success":true,"errors":["No access to tag N"],"added_tags":[]}
+    —— 静默失败 → 创建自己的同名 tag 重挂。
+    坑 2：tag 已挂在录音上时，重复 attach 返回 success=true 但 added_tags=[]
+    （幂等语义，没有新增）→ 以录音详情确认后视为成功。
     """
+    tok = speakr.token_for(rid)  # 检测该录音时确定可用的账号，tag 操作必须同一账号视角
+
+    def attached(detail) -> bool:
+        return tag_id in {t.get("id") for t in detail.get("tags") or []}
+
     tag_id = None
-    resp = None
-    tok = speakr.token_for(rid)  # 检测该录音时确定可用的账号,tag 操作必须同一账号视角
-    tags = await speakr.tags(TAG_NAMES[level], token=tok)
-    if tags:
-        tag_id = tags[0]["id"]
+    try:
+        tags = await speakr.tags(TAG_NAMES[level], token=tok)
+        tag_id = tags[0]["id"] if tags else None
+    except Exception:
+        pass
+    if tag_id is not None:
         resp = await speakr.attach_tag(rid, tag_id)
-        if resp.get("success") and resp.get("added_tags"):
+        if resp.get("success") and (resp.get("added_tags") or []):
             return tag_id
+        # added_tags 为空：已挂过（幂等）或被静默拒绝 → 以录音详情为准
+        if attached(await speakr.recording(rid)):
+            return tag_id
+    # 没有可用同名 tag（或被拒）→ 创建自己的同名 tag 再挂
     try:
         made = await speakr.create_tag(TAG_NAMES[level], TAG_COLORS[level], token=tok)
         tag_id = made.get("id")
     except RuntimeError as e:
         if "already exists" not in str(e):
             raise
-        # 同账号下已存在(可能被并发创建)→ 用同一视角重新取
+        # 同账号并发已创建 → 同视角重取
         tags = await speakr.tags(TAG_NAMES[level], token=tok)
         tag_id = tags[0]["id"] if tags else None
     if not tag_id:
-        raise RuntimeError(f"cannot resolve tag {TAG_NAMES[level]}: {resp}")
+        raise RuntimeError(f"cannot resolve tag {TAG_NAMES[level]}")
     resp = await speakr.attach_tag(rid, tag_id)
-    if not (resp.get("success") and resp.get("added_tags")):
+    if not (resp.get("success") and (resp.get("added_tags") or [])):
+        if attached(await speakr.recording(rid)):
+            return tag_id  # 幂等兜底
         raise RuntimeError(f"tag attach rejected: {resp}")
     return tag_id
 

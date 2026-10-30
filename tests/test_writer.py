@@ -83,7 +83,7 @@ def test_tag_fallback_on_silent_rejection():
             return {"id": 7}
 
         async def recording(self, rid):
-            return {"tags": [{"id": 2, "name": "SW-L3"}]}
+            return {"tags": []}  # 挂别人的 tag 被拒 → 录音上没有 tag
 
         async def detach_tag(self, rid, tag_id):
             self.calls.append(("detach", tag_id))
@@ -106,3 +106,38 @@ def test_tag_fallback_on_silent_rejection():
     assert creates and creates[0][2] == "tok-guest"  # create 用录音 token 的视角
     assert ("attach", 7) in sp.calls          # 用新 tag 重挂
     assert "notes" in [c[0] for c in sp.calls]  # 备注照常写入
+
+
+def test_tag_already_attached_is_success():
+    """重复 attach 已挂过的 tag:success=true 但 added_tags=[] → 幂等成功。"""
+    import asyncio
+    from app import writer
+
+    class AlreadySpeakr:
+        def __init__(self):
+            self.notes_written = None
+
+        def token_for(self, rid):
+            return "tok-guest"
+
+        async def tags(self, name, token=None):
+            return [{"id": 3, "name": name}]  # 自己的 tag,已挂过
+
+        async def attach_tag(self, rid, tag_id):
+            return {"success": True, "added_tags": [], "errors": None}  # 无新增
+
+        async def recording(self, rid):
+            return {"tags": [{"id": 3, "name": "SW-L3"}]}  # 详情确认已在
+
+        async def notes(self, rid):
+            return ""
+
+        async def put_notes(self, rid, notes):
+            self.notes_written = notes
+
+    sp = AlreadySpeakr()
+    hits = [{"level": "L3", "start_time": 60.0, "speaker": "S",
+             "text": "seminar text", "term": "seminar"}]
+    max_level = asyncio.run(writer.write_tags_and_notes(sp, 13, hits, "en"))
+    assert max_level == "L3"
+    assert "Sensitive-word alert" in sp.notes_written

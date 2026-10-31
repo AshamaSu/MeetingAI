@@ -41,6 +41,24 @@ wordlists/sensitive.csv（volume 挂载，按 mtime 热加载）：
 列 term,lang,level,category,variants,regex,enabled；兼容 lite words.txt 两列格式。
 印尼语变体手写进 variants（空格分隔）；LLM 兜底词形/委婉/错字。
 
+## 词表与重扫操作示例
+
+```bash
+# 下载当前词表(查看全部关键词与各级启用数)
+curl -s http://127.0.0.1:8898/wordlist | python3 -m json.tool
+
+# 更新词表:下载 → 编辑(加一行 赌博,zh,L1,gambling,,,1)→ 上传整份(PUT 是全文替换,不是增量)
+curl -s http://127.0.0.1:8898/wordlist | python3 -c "import json,sys; print(json.load(sys.stdin)['content'])" > words.txt
+echo '赌博,zh,L1,gambling,,,1' >> words.txt
+curl -s -X PUT http://127.0.0.1:8898/wordlist -H "Content-Type: text/plain" --data-binary @words.txt
+
+# 重扫:单条(词表调整后验证)与全量(词表大改后重跑历史)
+curl -s -X POST http://127.0.0.1:8898/scan/13
+curl -s -X POST http://127.0.0.1:8898/rescan-all
+```
+
+远程调用:先开 SSH 隧道 `ssh -N -L 8898:127.0.0.1:8898 <host>` 再访问 http://127.0.0.1:8898;PUT 是整份替换,上传后新转写即时生效,历史会议需 rescan。
+
 ## 可靠性
 
 - 验签：V2（t+HMAC，±300s 窗口，支持 secret 轮换宽限）→ V1 回退

@@ -1,0 +1,6 @@
+[submodule "speakr-sensitive-filter"]
+	path = speakr-sensitive-filter
+	url = git@github.com:AshamaSu/speakr-sensitive-filter.git
+[submodule "speakr-sensitive-lite"]
+	path = speakr-sensitive-lite
+	url = git@github.com:AshamaSu/speakr-sensitive-lite.git

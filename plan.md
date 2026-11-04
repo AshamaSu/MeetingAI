@@ -32,7 +32,7 @@
 ### 1.2 被测系统与已验证能力
 
 ```
-ASR 服务：http://82.156.1.74:9010/asr   （whisperx-asr-service，CUDA，serve_mode=simple）
+ASR 服务：http://<ASR_HOST>:9010/asr   （whisperx-asr-service，CUDA，serve_mode=simple）
 健康检查：GET /health → {"status":"healthy","device":"cuda","loaded_models":["large-v3"]}
 ```
 
@@ -73,7 +73,7 @@ python3 scripts/eval_fleurs_per_utt.py --tag per-utt          # L1 头条数字
 
 ## 2. 硬约束与已知坑（改代码前必读）
 
-1. **本机网络**：`curl` 一律加 `--noproxy '*'`（WorkBuddy 会注入 HTTP_PROXY，不加会走隧道拿 502）。YouTube / huggingface.co 直连不通；**hf-mirror.com、cnnindonesia.com、cnbcindonesia.com、82.156.1.74 可达**。
+1. **本机网络**：`curl` 一律加 `--noproxy '*'`（WorkBuddy 会注入 HTTP_PROXY，不加会走隧道拿 502）。YouTube / huggingface.co 直连不通；**hf-mirror.com、cnnindonesia.com、cnbcindonesia.com、<ASR_HOST> 可达**。
 2. **旧 `data/Lion Air给的培训视频/asr_json*/*.json` 的 `words` 是空数组**（当时没开 `word_timestamps`），拿不到词级置信度，**不要复用做置信度分析**。
 3. **`02.txt` / `02-2.txt` 不是人工 GT**，是 ASR 自己的输出（自己跟自己比 WER=0 是无意义的）。已改存为 `corpus/L3-stress/*.ref.txt`，只作交叉参考。
 4. **数字必须两侧归一化**：`delapan puluh persen` ↔ `80%`、`1.000` ↔ `1000`。不做会让 WER 虚高 3–6pp（L0 首轮全部误差都来自此）。`eval_asr.py` 已实现，别改坏。

@@ -1,0 +1,77 @@
+<mxfile host="Electron" agent="2B">
+  <diagram id="meeting-arch" name="部署架构">
+    <mxGraphModel dx="796" dy="693" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="720" pageHeight="720" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=15;fontStyle=1;fontColor=#2C2C2A;" value="会议转写系统 · 部署架构（speakr + whisperx + DeepSeek）" vertex="1">
+          <mxGeometry height="24" width="480" x="40" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="browser" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F1EFE8;strokeColor=#5F5E5A;fontColor=#2C2C2A;fontSize=13;" value="用户浏览器&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Web 入口 · :8899&lt;/font&gt;" vertex="1">
+          <mxGeometry height="52" width="180" x="250" y="44" as="geometry" />
+        </mxCell>
+        <mxCell id="appserver" parent="1" style="rounded=1;whiteSpace=wrap;html=1;container=1;pointerEvents=0;fillColor=#E6F1FB;strokeColor=#185FA5;fontColor=#0C447C;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=6;arcSize=8;" value="应用服务器 · speakr 容器（learnedmachine/speakr:lite）" vertex="1">
+          <mxGeometry height="170" width="600" x="40" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="webui" parent="appserver" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B5D4F4;strokeColor=#185FA5;fontColor=#0C447C;fontSize=12;" value="Web UI · 任务队列&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;上传 · 播放 · 导出&lt;/font&gt;" vertex="1">
+          <mxGeometry height="64" width="170" x="20" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uploads" parent="appserver" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B5D4F4;strokeColor=#185FA5;fontColor=#0C447C;fontSize=12;" value="音频存储 ./uploads&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;mp3 128k · 90 天清理&lt;/font&gt;" vertex="1">
+          <mxGeometry height="64" width="170" x="210" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="sqlite" parent="appserver" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B5D4F4;strokeColor=#185FA5;fontColor=#0C447C;fontSize=12;" value="SQLite · 声纹档案&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;./instance · 永久保留&lt;/font&gt;" vertex="1">
+          <mxGeometry height="64" width="180" x="400" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="gpu" parent="1" style="rounded=1;whiteSpace=wrap;html=1;container=1;pointerEvents=0;fillColor=#E1F5EE;strokeColor=#0F6E56;fontColor=#085041;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=6;arcSize=8;" value="GPU 算力机 · whisperx-asr-service（FastAPI · :9000 · 无鉴权，内网隔离）" vertex="1">
+          <mxGeometry height="280" width="320" x="40" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="vad" parent="gpu" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9FE1CB;strokeColor=#0F6E56;fontColor=#085041;fontSize=12;" value="VAD 静音切分" vertex="1">
+          <mxGeometry height="40" width="220" x="50" y="56" as="geometry" />
+        </mxCell>
+        <mxCell id="asr" parent="gpu" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9FE1CB;strokeColor=#0F6E56;fontColor=#085041;fontSize=12;" value="large-v3 转写（faster-whisper）" vertex="1">
+          <mxGeometry height="40" width="220" x="50" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="align" parent="gpu" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9FE1CB;strokeColor=#0F6E56;fontColor=#085041;fontSize=12;" value="词级时间戳对齐（wav2vec2，含印尼语补丁）" vertex="1">
+          <mxGeometry height="40" width="220" x="50" y="164" as="geometry" />
+        </mxCell>
+        <mxCell id="diar" parent="gpu" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9FE1CB;strokeColor=#0F6E56;fontColor=#085041;fontSize=12;" value="pyannote 说话人分离" vertex="1">
+          <mxGeometry height="40" width="220" x="50" y="218" as="geometry" />
+        </mxCell>
+        <mxCell id="e_vad" edge="1" parent="gpu" source="vad" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0F6E56;fontSize=11;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="asr">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_asr2" edge="1" parent="gpu" source="asr" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0F6E56;fontSize=11;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="align">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_align" edge="1" parent="gpu" source="align" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0F6E56;fontSize=11;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="diar">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="deepseek" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F1EFE8;strokeColor=#5F5E5A;fontColor=#2C2C2A;fontSize=13;dashed=1;" value="DeepSeek（外接 LLM）&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;摘要 · 对话 · 翻译规划&lt;/font&gt;" vertex="1">
+          <mxGeometry height="72" width="200" x="440" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="postproc" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F1EFE8;strokeColor=#5F5E5A;fontColor=#2C2C2A;fontSize=13;dashed=1;" value="后处理服务&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;敏感词告警&lt;/font&gt;" vertex="1">
+          <mxGeometry height="64" width="240" x="420" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="e_ui" edge="1" parent="1" source="browser" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#888780;fontSize=11;fontColor=#444441;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="appserver">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_asr" edge="1" parent="1" source="appserver" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#888780;fontSize=11;fontColor=#444441;labelBackgroundColor=#ffffff;exitX=0.167;exitY=1;entryX=0.31;entryY=0;" target="gpu" value="POST /asr（音频）&lt;br&gt;:9000 · 仅内网">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_ret" edge="1" parent="1" source="gpu" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#888780;dashed=1;fontSize=11;fontColor=#444441;labelBackgroundColor=#ffffff;exitX=0.656;exitY=0;entryX=0.35;entryY=1;" target="appserver" value="返回 JSON&lt;br&gt;说话人 + 词级时间戳">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_llm" edge="1" parent="1" source="appserver" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#888780;fontSize=11;fontColor=#444441;labelBackgroundColor=#ffffff;exitX=0.867;exitY=1;entryX=0.5;entryY=0;" target="deepseek" value="OpenAI 兼容&lt;br&gt;仅转写文本出网">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_hook" edge="1" parent="1" source="appserver" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#888780;dashed=1;fontSize=11;fontColor=#444441;labelBackgroundColor=#ffffff;exitX=0.633;exitY=1;entryX=0;entryY=0.5;" target="postproc" value="webhook 通知">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="420" y="340" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

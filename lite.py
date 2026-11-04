@@ -260,7 +260,7 @@ def main():
     args = ap.parse_args()
 
     load_env()
-    url = os.environ.get("SPEAKR_URL", "http://82.156.1.74:8899")
+    url = os.environ.get("SPEAKR_URL", "http://localhost:8899")
     token = os.environ.get("SPEAKR_TOKEN", "")
     if not token:
         sys.exit("缺少 SPEAKR_TOKEN（环境变量或 .env）")

@@ -3,7 +3,7 @@
 // @namespace    sensitive-lite
 // @version      0.1
 // @description  详情页高亮命中敏感词的转写段落/气泡。数据来源：备注中的 <!-- sensitive-lite:data ... --> 块（用浏览器登录态读取，不暴露 Token）。
-// @match        http://82.156.1.74:8899/*
+// @match        http://localhost:8899/*
 // @run-at       document-idle
 // @grant        none
 // ==/UserScript==

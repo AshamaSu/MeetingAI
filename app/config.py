@@ -36,7 +36,7 @@ class Settings:
         self.max_attempts = int(os.environ.get("MAX_ATTEMPTS", "8"))
         self.worker_interval = float(os.environ.get("WORKER_INTERVAL", "2"))
         self.worker_enabled = os.environ.get("WORKER_ENABLED", "1").lower() not in ("0", "false", "no")
-        # 浏览器可达的服务基址（如 http://82.156.1.74:8898）；为空则 widget 回退 notes 通道
+        # 浏览器可达的服务基址（如 http://<speakr-host>:8898）；为空则 widget 回退 notes 通道
         self.api_url_public = os.environ.get("API_URL_PUBLIC", "").rstrip("/")
         # LLM 精判（OpenAI 兼容 /chat/completions）；不启用则纯词表
         self.llm_enabled = os.environ.get("LLM_ENABLED", "").lower() in ("1", "true", "yes")

@@ -69,7 +69,7 @@
 | 品牌覆盖文件 | `/data/speakr/brand/` | 1.4 MB / 27 个文件 | 全部只读挂载进 speakr 容器 |
 | 敏感词服务源码 | `/data/speakr/sensitive-filter/`（排除 `data/`） | 168 KB | 用 `build:` 现场构建，或直接发镜像 |
 | 敏感词服务配置 | `sensitive-filter/.env` | 308 B | 含 speakr API Token / Webhook Secret |
-| 词表种子 | `sensitive-filter/wordlists/sensitive.csv` | 725 B | 现网以服务器版本为准，见 §6.5 |
+| 词表种子 | `sensitive-filter/wordlists/sensitive.csv` | 22 KB | 2026-11-06 扩至 740 条；现网以服务器版本为准，见 §6.5 |
 | whisperx 编排 | `/data/whisperx/docker-compose.yml` | 4.6 KB | |
 | whisperx 配置 | `/data/whisperx/.env` | 198 B | 含 HF_TOKEN |
 | ASR 模型缓存（二选一） | 卷 `whisperx_whisperx-cache` | 12 GB | 离线环境必须带；联网环境可首启自动下载（`HF_ENDPOINT=https://hf-mirror.com`） |
@@ -307,12 +307,127 @@ curl -s -X POST http://<host>:8899/api/v1/webhooks \
 docker compose up -d sensitive-filter
 ```
 
-### 6.5 词表
+### 6.5 词表更新与验证（以 `./sensitive.csv` 为例）
 
-- 交付包内 `wordlists/sensitive.csv` 是**初始种子**（18 行，含表头注释）。
-- 现网以服务器上通过 `PUT /wordlist` 维护的版本为准；迁移时如需沿用现网词表，在现网执行
-  `curl -s http://127.0.0.1:8898/wordlist` 导出后带回，**不要用本地仓库覆盖**。
-- 更新词表后：单条重扫 `POST /scan/{rid}`，全量 `POST /rescan-all`。
+> `8898` 只监听 `127.0.0.1`：以下命令在宿主机执行；在本地执行先开隧道
+> `ssh -N -L 8898:127.0.0.1:8898 <host>`，并把 `127.0.0.1:8898` 换成同一地址即可。
+> 若配置了 `ALERT_USER/ALERT_PASS`，所有 curl 追加 `-u "$ALERT_USER:$ALERT_PASS"`（否则 403）。
+
+**1）先拉取现网版本（服务器是权威源，必须先备份）**
+
+```bash
+cd /data/speakr/sensitive-filter
+
+# 导出 JSON 快照，保留一份带时间戳的备份
+curl -s http://127.0.0.1:8898/wordlist -o /tmp/wordlist.json
+python3 -c "import json,sys; sys.stdout.write(json.load(open('/tmp/wordlist.json'))['content'])" > ./sensitive.csv
+cp ./sensitive.csv ./sensitive.csv.$(date +%Y%m%d-%H%M%S).bak
+
+# 看当前规模与分级
+python3 -c "import json; d=json.load(open('/tmp/wordlist.json')); print(d['terms'], d['enabled_by_level'])"
+```
+
+**2）编辑 `./sensitive.csv`**
+
+- 7 列：`term,lang,level,category,variants,regex,enabled`；`#` 开头为注释。
+- `variants` 用空格分隔，**不能放多词短语**（会被拆成多个词）；多词条目直接写进 `term`。
+- 字段内不能有逗号（解析器按逗号裸切）；连字符/撇号会被归一化成空格，需写成空格形式。
+- 中文按子串匹配，单字和 2 字常用词误报高，新增前先评估。
+- 文件上限 **200000 字节**（超过返回 413）。
+- 文件需以换行结尾：PUT 会自动补一个，若原文件没有，回读 diff/hash 会差一字节。
+
+**3）上传前自检（不依赖服务）**
+
+```bash
+wc -c ./sensitive.csv                      # 必须 < 200000
+
+python3 - <<'PY'
+import csv, sys
+rows, ids = list(csv.reader(open('./sensitive.csv', encoding='utf-8-sig'))), set()
+bad = 0
+for r in rows:
+    if not r or r[0].startswith('#') or r[0] == 'term':
+        continue
+    if len(r) != 7 or r[2] not in ('L1', 'L2', 'L3') or not r[0].strip():
+        bad += 1
+        continue
+    if r[0].lower() in ids:
+        print('duplicate term:', r[0]); bad += 1
+    ids.add(r[0].lower())
+print('terms:', len(ids), 'bad rows:', bad)
+sys.exit(1 if bad else 0)
+PY
+```
+
+**4）上传（整份替换，不是增量；服务端自动保留 `.bak`）**
+
+```bash
+curl -sS -X PUT http://127.0.0.1:8898/wordlist \
+  -H 'Content-Type: text/plain; charset=utf-8' \
+  --data-binary @./sensitive.csv
+```
+
+期望返回（数字应与第 3 步一致）：
+
+```json
+{"status":"saved","terms":740,"enabled_by_level":{"L1":3,"L2":19,"L3":718}}
+```
+
+常见失败：`413` 文件超限、`422` 解析不到有效行或 regex 非法、`403` 未带 Basic Auth。
+
+**5）验证生效（按顺序做）**
+
+```bash
+# 5.1 回读比对：内容必须与上传文件逐字节一致
+curl -s http://127.0.0.1:8898/wordlist \
+  | python3 -c "import json,sys; sys.stdout.write(json.load(sys.stdin)['content'])" > /tmp/roundtrip.csv
+diff -u ./sensitive.csv /tmp/roundtrip.csv && echo "content OK"
+sha256sum ./sensitive.csv /tmp/roundtrip.csv
+
+# 5.2 计数比对
+curl -s http://127.0.0.1:8898/wordlist \
+  | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['terms'], d['enabled_by_level'])"
+```
+
+```bash
+# 5.3 单条重扫，确认新词真的命中（<rid> 换成一条含目标词的录音）
+curl -s -X POST http://127.0.0.1:8898/scan/<rid>
+sleep 10   # 后台 worker 需要几秒
+curl -s "http://127.0.0.1:8898/hits?recording_id=<rid>" | python3 -m json.tool
+```
+
+判据：`hits` 里出现新增 `term`，`level` 与词表一致；speakr 侧出现对应 `SW-L1/L2/L3` 标签与备注。
+
+```bash
+# 5.4 全量重扫（历史录音；逐条入队，开 LLM 时注意调用成本）
+curl -s -X POST http://127.0.0.1:8898/rescan-all
+
+# 5.5 服务健康
+curl -s http://127.0.0.1:8898/healthz
+```
+
+**6）回滚**
+
+```bash
+cd /data/speakr/sensitive-filter
+# 优先用自己第 1 步的备份；也可用 PUT 自动留的上一版
+cp wordlists/sensitive.csv.bak ./sensitive.rollback.csv
+curl -sS -X PUT http://127.0.0.1:8898/wordlist \
+  -H 'Content-Type: text/plain; charset=utf-8' \
+  --data-binary @./sensitive.rollback.csv
+```
+
+注意：回滚这次 PUT 会把 `.bak` 覆盖成"刚撤下的坏版本"，所以回滚前先另存 `./sensitive.rollback.csv`。
+
+**7）同步到交付包**
+
+```bash
+# 交付包/仓库里的种子必须来自现网，不要用旧文件覆盖
+cp ./sensitive.csv /path/to/release/sensitive-filter/wordlists/sensitive.csv
+```
+
+- 词表按 mtime 热加载，PUT 成功后新转写即时生效；历史录音只有执行 `/rescan-all` 才重算。
+- 迁移时若 `rsync` 源码目录，务必保留 `--exclude "wordlists/"`（见 §9.6），否则线上词表会被旧种子覆盖。
 
 ### 6.6 前端 widget
 
@@ -375,5 +490,5 @@ tar czf instance.tar.gz -C /data/speakr instance/transcriptions.db \
 |---|---|
 | brand 文件 | 27 个（26 挂载 + 1 个 `.bak-sw` 不参与挂载） |
 | sensitive-filter `app/` | 12 个 `.py`，现网与本地仓库 MD5 全一致 |
-| 词表 | 现网 `sensitive.csv` MD5 `a4cc3e9c…`，本地种子 `0d5b9edc…`（不同属正常） |
+| 词表 | 现网与本地仓库一致，MD5 `ab44df6c…`（2026-11-06，740 条） |
 | 编排 | speakr compose 含 2 个 service；whisperx compose 含 1 个 service + 1 个命名卷 |

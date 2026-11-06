@@ -1,4 +1,4 @@
-﻿# 词表 CSV（B3 全 schema）。列: term,lang,level,category,variants,regex,enabled
+# 词表 CSV（B3 全 schema）。列: term,lang,level,category,variants,regex,enabled
 # variants 用空格分隔多个变体（印尼语词根+词形变化手写）；regex 列可留空
 # 首字符为 # 的行为注释；enabled=0 停用
 term,lang,level,category,variants,regex,enabled
@@ -16,3 +16,736 @@ keluhan,id,L3,complaint,,,1
 facade,en,L3,concern,,,1
 illusion,en,L3,concern,,,1
 jargon,en,L3,concern,jargons,,1
+
+# --- id 脏话词表：drizki/indonesian-badwords @ cd5ea5950046dd8dcae7c68fce7197bfd754c25f (MIT) ---
+# 仅 reviewed-core、非地区语；排除 anjing 族与 jancuk/cokli/kenthu/tempik/pukimai/cukimai 族
+# 按词义+severity 聚合；severity>=3 -> L2，severity=2 -> L3；连字符/撇号写成空格形式
+bacol,id,L2,sexual-vulgarity,,,1
+colmek,id,L2,sexual-vulgarity,,,1
+entot,id,L2,sexual-vulgarity,entod entotan ngentot ngentod ngentotin toteng,,1
+jembut,id,L2,sexual-vulgarity,,,1
+jilmek,id,L2,sexual-vulgarity,,,1
+kentot,id,L2,sexual-vulgarity,,,1
+kontol,id,L2,sexual-vulgarity,konthol kntl kontolmu lotnok,,1
+lonte,id,L2,sexual-vulgarity,,,1
+meki,id,L2,sexual-vulgarity,,,1
+memek,id,L2,sexual-vulgarity,memeknya kemem,,1
+ngaceng,id,L2,sexual-vulgarity,,,1
+ngewe,id,L2,sexual-vulgarity,,,1
+ngloco,id,L2,sexual-vulgarity,,,1
+sundal,id,L2,sexual-vulgarity,sundel,,1
+bacot,id,L3,insult,,,1
+bahlul,id,L3,insult,,,1
+bajingan,id,L3,insult,bajingannya,,1
+bangke,id,L3,insult,vangke,,1
+bangsat,id,L3,insult,bangsad bangsuy bgsd bgst bngst,,1
+bedebah,id,L3,insult,,,1
+bego,id,L3,insult,,,1
+beloon,id,L3,insult,bloon,,1
+berengsek,id,L3,insult,brengsek,,1
+bokep,id,L3,sexual-vulgarity,,,1
+dongo,id,L3,insult,,,1
+dungu,id,L3,insult,,,1
+esek esek,id,L3,sexual-vulgarity,,,1
+goblok,id,L3,insult,goblog goblo gblk gobloknya,,1
+jablay,id,L3,sexual-vulgarity,,,1
+keparat,id,L3,insult,,,1
+lucknut,id,L3,insult,,,1
+sialan,id,L3,insult,,,1
+tai,id,L3,insult,taek taik,,1
+tolol,id,L3,insult,tolil tololnya,,1
+
+# --- en/zh profanity: LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words @ master (CC-BY-4.0) ---
+# 全量导入；剔除归一化后为空、纯数字/符号、单字符、非中文且少于 3 字符的条目；等级统一 L3 / category=profanity
+2 girls 1 cup,en,L3,profanity,,,1
+2g1c,en,L3,profanity,,,1
+acrotomophilia,en,L3,profanity,,,1
+alabama hot pocket,en,L3,profanity,,,1
+alaskan pipeline,en,L3,profanity,,,1
+anal,en,L3,profanity,,,1
+anilingus,en,L3,profanity,,,1
+anus,en,L3,profanity,,,1
+apeshit,en,L3,profanity,,,1
+arsehole,en,L3,profanity,,,1
+ass,en,L3,profanity,,,1
+asshole,en,L3,profanity,,,1
+assmunch,en,L3,profanity,,,1
+auto erotic,en,L3,profanity,,,1
+autoerotic,en,L3,profanity,,,1
+babeland,en,L3,profanity,,,1
+baby batter,en,L3,profanity,,,1
+baby juice,en,L3,profanity,,,1
+ball gag,en,L3,profanity,,,1
+ball gravy,en,L3,profanity,,,1
+ball kicking,en,L3,profanity,,,1
+ball licking,en,L3,profanity,,,1
+ball sack,en,L3,profanity,,,1
+ball sucking,en,L3,profanity,,,1
+bangbros,en,L3,profanity,,,1
+bangbus,en,L3,profanity,,,1
+bareback,en,L3,profanity,,,1
+barely legal,en,L3,profanity,,,1
+barenaked,en,L3,profanity,,,1
+bastard,en,L3,profanity,,,1
+bastardo,en,L3,profanity,,,1
+bastinado,en,L3,profanity,,,1
+bbw,en,L3,profanity,,,1
+bdsm,en,L3,profanity,,,1
+beaner,en,L3,profanity,,,1
+beaners,en,L3,profanity,,,1
+beastiality,en,L3,profanity,,,1
+beaver cleaver,en,L3,profanity,,,1
+beaver lips,en,L3,profanity,,,1
+bestiality,en,L3,profanity,,,1
+big black,en,L3,profanity,,,1
+big breasts,en,L3,profanity,,,1
+big knockers,en,L3,profanity,,,1
+big tits,en,L3,profanity,,,1
+bimbos,en,L3,profanity,,,1
+birdlock,en,L3,profanity,,,1
+bitch,en,L3,profanity,,,1
+bitches,en,L3,profanity,,,1
+black cock,en,L3,profanity,,,1
+blonde action,en,L3,profanity,,,1
+blonde on blonde action,en,L3,profanity,,,1
+blow job,en,L3,profanity,,,1
+blow your load,en,L3,profanity,,,1
+blowjob,en,L3,profanity,,,1
+blue waffle,en,L3,profanity,,,1
+blumpkin,en,L3,profanity,,,1
+bollocks,en,L3,profanity,,,1
+bondage,en,L3,profanity,,,1
+boner,en,L3,profanity,,,1
+boob,en,L3,profanity,,,1
+boobs,en,L3,profanity,,,1
+booty call,en,L3,profanity,,,1
+brown showers,en,L3,profanity,,,1
+brunette action,en,L3,profanity,,,1
+bukkake,en,L3,profanity,,,1
+bulldyke,en,L3,profanity,,,1
+bullet vibe,en,L3,profanity,,,1
+bullshit,en,L3,profanity,,,1
+bung hole,en,L3,profanity,,,1
+bunghole,en,L3,profanity,,,1
+busty,en,L3,profanity,,,1
+butt,en,L3,profanity,,,1
+buttcheeks,en,L3,profanity,,,1
+butthole,en,L3,profanity,,,1
+camel toe,en,L3,profanity,,,1
+camgirl,en,L3,profanity,,,1
+camslut,en,L3,profanity,,,1
+camwhore,en,L3,profanity,,,1
+carpet muncher,en,L3,profanity,,,1
+carpetmuncher,en,L3,profanity,,,1
+chocolate rosebuds,en,L3,profanity,,,1
+cialis,en,L3,profanity,,,1
+circlejerk,en,L3,profanity,,,1
+cleveland steamer,en,L3,profanity,,,1
+clit,en,L3,profanity,,,1
+clitoris,en,L3,profanity,,,1
+clover clamps,en,L3,profanity,,,1
+clusterfuck,en,L3,profanity,,,1
+cock,en,L3,profanity,,,1
+cocks,en,L3,profanity,,,1
+coon,en,L3,profanity,,,1
+coons,en,L3,profanity,,,1
+coprolagnia,en,L3,profanity,,,1
+coprophilia,en,L3,profanity,,,1
+cornhole,en,L3,profanity,,,1
+creampie,en,L3,profanity,,,1
+cum,en,L3,profanity,,,1
+cumming,en,L3,profanity,,,1
+cumshot,en,L3,profanity,,,1
+cumshots,en,L3,profanity,,,1
+cunnilingus,en,L3,profanity,,,1
+cunt,en,L3,profanity,,,1
+darkie,en,L3,profanity,,,1
+date rape,en,L3,profanity,,,1
+daterape,en,L3,profanity,,,1
+deep throat,en,L3,profanity,,,1
+deepthroat,en,L3,profanity,,,1
+dendrophilia,en,L3,profanity,,,1
+dick,en,L3,profanity,,,1
+dildo,en,L3,profanity,,,1
+dingleberries,en,L3,profanity,,,1
+dingleberry,en,L3,profanity,,,1
+dirty pillows,en,L3,profanity,,,1
+dirty sanchez,en,L3,profanity,,,1
+dog style,en,L3,profanity,,,1
+doggie style,en,L3,profanity,,,1
+doggiestyle,en,L3,profanity,,,1
+doggy style,en,L3,profanity,,,1
+doggystyle,en,L3,profanity,,,1
+dolcett,en,L3,profanity,,,1
+domination,en,L3,profanity,,,1
+dominatrix,en,L3,profanity,,,1
+dommes,en,L3,profanity,,,1
+donkey punch,en,L3,profanity,,,1
+double dong,en,L3,profanity,,,1
+double penetration,en,L3,profanity,,,1
+dp action,en,L3,profanity,,,1
+dry hump,en,L3,profanity,,,1
+dvda,en,L3,profanity,,,1
+eat my ass,en,L3,profanity,,,1
+ecchi,en,L3,profanity,,,1
+ejaculation,en,L3,profanity,,,1
+erotic,en,L3,profanity,,,1
+erotism,en,L3,profanity,,,1
+escort,en,L3,profanity,,,1
+eunuch,en,L3,profanity,,,1
+fag,en,L3,profanity,,,1
+faggot,en,L3,profanity,,,1
+fecal,en,L3,profanity,,,1
+felch,en,L3,profanity,,,1
+fellatio,en,L3,profanity,,,1
+feltch,en,L3,profanity,,,1
+female squirting,en,L3,profanity,,,1
+femdom,en,L3,profanity,,,1
+figging,en,L3,profanity,,,1
+fingerbang,en,L3,profanity,,,1
+fingering,en,L3,profanity,,,1
+fisting,en,L3,profanity,,,1
+foot fetish,en,L3,profanity,,,1
+footjob,en,L3,profanity,,,1
+frotting,en,L3,profanity,,,1
+fuck,en,L3,profanity,,,1
+fuck buttons,en,L3,profanity,,,1
+fuckin,en,L3,profanity,,,1
+fucking,en,L3,profanity,,,1
+fucktards,en,L3,profanity,,,1
+fudge packer,en,L3,profanity,,,1
+fudgepacker,en,L3,profanity,,,1
+futanari,en,L3,profanity,,,1
+g spot,en,L3,profanity,,,1
+gang bang,en,L3,profanity,,,1
+gangbang,en,L3,profanity,,,1
+gay sex,en,L3,profanity,,,1
+genitals,en,L3,profanity,,,1
+giant cock,en,L3,profanity,,,1
+girl on,en,L3,profanity,,,1
+girl on top,en,L3,profanity,,,1
+girls gone wild,en,L3,profanity,,,1
+goatcx,en,L3,profanity,,,1
+goatse,en,L3,profanity,,,1
+god damn,en,L3,profanity,,,1
+gokkun,en,L3,profanity,,,1
+golden shower,en,L3,profanity,,,1
+goo girl,en,L3,profanity,,,1
+goodpoop,en,L3,profanity,,,1
+goregasm,en,L3,profanity,,,1
+grope,en,L3,profanity,,,1
+group sex,en,L3,profanity,,,1
+guro,en,L3,profanity,,,1
+hand job,en,L3,profanity,,,1
+handjob,en,L3,profanity,,,1
+hard core,en,L3,profanity,,,1
+hardcore,en,L3,profanity,,,1
+hentai,en,L3,profanity,,,1
+homoerotic,en,L3,profanity,,,1
+honkey,en,L3,profanity,,,1
+hooker,en,L3,profanity,,,1
+horny,en,L3,profanity,,,1
+hot carl,en,L3,profanity,,,1
+hot chick,en,L3,profanity,,,1
+how to kill,en,L3,profanity,,,1
+how to murder,en,L3,profanity,,,1
+huge fat,en,L3,profanity,,,1
+humping,en,L3,profanity,,,1
+incest,en,L3,profanity,,,1
+intercourse,en,L3,profanity,,,1
+jack off,en,L3,profanity,,,1
+jail bait,en,L3,profanity,,,1
+jailbait,en,L3,profanity,,,1
+jelly donut,en,L3,profanity,,,1
+jerk off,en,L3,profanity,,,1
+jigaboo,en,L3,profanity,,,1
+jiggaboo,en,L3,profanity,,,1
+jiggerboo,en,L3,profanity,,,1
+jizz,en,L3,profanity,,,1
+juggs,en,L3,profanity,,,1
+kike,en,L3,profanity,,,1
+kinbaku,en,L3,profanity,,,1
+kinkster,en,L3,profanity,,,1
+kinky,en,L3,profanity,,,1
+knobbing,en,L3,profanity,,,1
+leather restraint,en,L3,profanity,,,1
+leather straight jacket,en,L3,profanity,,,1
+lemon party,en,L3,profanity,,,1
+livesex,en,L3,profanity,,,1
+lolita,en,L3,profanity,,,1
+lovemaking,en,L3,profanity,,,1
+make me come,en,L3,profanity,,,1
+male squirting,en,L3,profanity,,,1
+masturbate,en,L3,profanity,,,1
+masturbating,en,L3,profanity,,,1
+masturbation,en,L3,profanity,,,1
+menage a trois,en,L3,profanity,,,1
+milf,en,L3,profanity,,,1
+missionary position,en,L3,profanity,,,1
+mong,en,L3,profanity,,,1
+motherfucker,en,L3,profanity,,,1
+mound of venus,en,L3,profanity,,,1
+mr hands,en,L3,profanity,,,1
+muff diver,en,L3,profanity,,,1
+muffdiving,en,L3,profanity,,,1
+nambla,en,L3,profanity,,,1
+nawashi,en,L3,profanity,,,1
+negro,en,L3,profanity,,,1
+neonazi,en,L3,profanity,,,1
+nig nog,en,L3,profanity,,,1
+nigga,en,L3,profanity,,,1
+nigger,en,L3,profanity,,,1
+nimphomania,en,L3,profanity,,,1
+nipple,en,L3,profanity,,,1
+nipples,en,L3,profanity,,,1
+nsfw,en,L3,profanity,,,1
+nsfw images,en,L3,profanity,,,1
+nude,en,L3,profanity,,,1
+nudity,en,L3,profanity,,,1
+nutten,en,L3,profanity,,,1
+nympho,en,L3,profanity,,,1
+nymphomania,en,L3,profanity,,,1
+octopussy,en,L3,profanity,,,1
+omorashi,en,L3,profanity,,,1
+one cup two girls,en,L3,profanity,,,1
+one guy one jar,en,L3,profanity,,,1
+orgasm,en,L3,profanity,,,1
+orgy,en,L3,profanity,,,1
+paedophile,en,L3,profanity,,,1
+paki,en,L3,profanity,,,1
+panties,en,L3,profanity,,,1
+panty,en,L3,profanity,,,1
+pedobear,en,L3,profanity,,,1
+pedophile,en,L3,profanity,,,1
+pegging,en,L3,profanity,,,1
+penis,en,L3,profanity,,,1
+phone sex,en,L3,profanity,,,1
+piece of shit,en,L3,profanity,,,1
+pikey,en,L3,profanity,,,1
+piss pig,en,L3,profanity,,,1
+pissing,en,L3,profanity,,,1
+pisspig,en,L3,profanity,,,1
+playboy,en,L3,profanity,,,1
+pleasure chest,en,L3,profanity,,,1
+pole smoker,en,L3,profanity,,,1
+ponyplay,en,L3,profanity,,,1
+poof,en,L3,profanity,,,1
+poon,en,L3,profanity,,,1
+poontang,en,L3,profanity,,,1
+poop chute,en,L3,profanity,,,1
+poopchute,en,L3,profanity,,,1
+porn,en,L3,profanity,,,1
+porno,en,L3,profanity,,,1
+pornography,en,L3,profanity,,,1
+prince albert piercing,en,L3,profanity,,,1
+pthc,en,L3,profanity,,,1
+pubes,en,L3,profanity,,,1
+punany,en,L3,profanity,,,1
+pussy,en,L3,profanity,,,1
+queaf,en,L3,profanity,,,1
+queef,en,L3,profanity,,,1
+quim,en,L3,profanity,,,1
+raghead,en,L3,profanity,,,1
+raging boner,en,L3,profanity,,,1
+rape,en,L3,profanity,,,1
+raping,en,L3,profanity,,,1
+rapist,en,L3,profanity,,,1
+rectum,en,L3,profanity,,,1
+reverse cowgirl,en,L3,profanity,,,1
+rimjob,en,L3,profanity,,,1
+rimming,en,L3,profanity,,,1
+rosy palm,en,L3,profanity,,,1
+rosy palm and her 5 sisters,en,L3,profanity,,,1
+rusty trombone,en,L3,profanity,,,1
+s m,en,L3,profanity,,,1
+sadism,en,L3,profanity,,,1
+santorum,en,L3,profanity,,,1
+scat,en,L3,profanity,,,1
+schlong,en,L3,profanity,,,1
+scissoring,en,L3,profanity,,,1
+semen,en,L3,profanity,,,1
+sex,en,L3,profanity,,,1
+sexcam,en,L3,profanity,,,1
+sexo,en,L3,profanity,,,1
+sexual,en,L3,profanity,,,1
+sexuality,en,L3,profanity,,,1
+sexually,en,L3,profanity,,,1
+sexy,en,L3,profanity,,,1
+shaved beaver,en,L3,profanity,,,1
+shaved pussy,en,L3,profanity,,,1
+shemale,en,L3,profanity,,,1
+shibari,en,L3,profanity,,,1
+shit,en,L3,profanity,,,1
+shitblimp,en,L3,profanity,,,1
+shitty,en,L3,profanity,,,1
+shota,en,L3,profanity,,,1
+shrimping,en,L3,profanity,,,1
+skeet,en,L3,profanity,,,1
+slanteye,en,L3,profanity,,,1
+slut,en,L3,profanity,,,1
+smut,en,L3,profanity,,,1
+snatch,en,L3,profanity,,,1
+snowballing,en,L3,profanity,,,1
+sodomize,en,L3,profanity,,,1
+sodomy,en,L3,profanity,,,1
+spastic,en,L3,profanity,,,1
+spic,en,L3,profanity,,,1
+splooge,en,L3,profanity,,,1
+splooge moose,en,L3,profanity,,,1
+spooge,en,L3,profanity,,,1
+spread legs,en,L3,profanity,,,1
+spunk,en,L3,profanity,,,1
+strap on,en,L3,profanity,,,1
+strapon,en,L3,profanity,,,1
+strappado,en,L3,profanity,,,1
+strip club,en,L3,profanity,,,1
+style doggy,en,L3,profanity,,,1
+suck,en,L3,profanity,,,1
+sucks,en,L3,profanity,,,1
+suicide girls,en,L3,profanity,,,1
+sultry women,en,L3,profanity,,,1
+swastika,en,L3,profanity,,,1
+swinger,en,L3,profanity,,,1
+tainted love,en,L3,profanity,,,1
+taste my,en,L3,profanity,,,1
+tea bagging,en,L3,profanity,,,1
+threesome,en,L3,profanity,,,1
+throating,en,L3,profanity,,,1
+thumbzilla,en,L3,profanity,,,1
+tied up,en,L3,profanity,,,1
+tight white,en,L3,profanity,,,1
+tit,en,L3,profanity,,,1
+tits,en,L3,profanity,,,1
+titties,en,L3,profanity,,,1
+titty,en,L3,profanity,,,1
+tongue in a,en,L3,profanity,,,1
+topless,en,L3,profanity,,,1
+tosser,en,L3,profanity,,,1
+towelhead,en,L3,profanity,,,1
+tranny,en,L3,profanity,,,1
+tribadism,en,L3,profanity,,,1
+tub girl,en,L3,profanity,,,1
+tubgirl,en,L3,profanity,,,1
+tushy,en,L3,profanity,,,1
+twat,en,L3,profanity,,,1
+twink,en,L3,profanity,,,1
+twinkie,en,L3,profanity,,,1
+two girls one cup,en,L3,profanity,,,1
+undressing,en,L3,profanity,,,1
+upskirt,en,L3,profanity,,,1
+urethra play,en,L3,profanity,,,1
+urophilia,en,L3,profanity,,,1
+vagina,en,L3,profanity,,,1
+venus mound,en,L3,profanity,,,1
+viagra,en,L3,profanity,,,1
+vibrator,en,L3,profanity,,,1
+violet wand,en,L3,profanity,,,1
+vorarephilia,en,L3,profanity,,,1
+voyeur,en,L3,profanity,,,1
+voyeurweb,en,L3,profanity,,,1
+voyuer,en,L3,profanity,,,1
+vulva,en,L3,profanity,,,1
+wank,en,L3,profanity,,,1
+wet dream,en,L3,profanity,,,1
+wetback,en,L3,profanity,,,1
+white power,en,L3,profanity,,,1
+whore,en,L3,profanity,,,1
+worldsex,en,L3,profanity,,,1
+wrapping men,en,L3,profanity,,,1
+wrinkled starfish,en,L3,profanity,,,1
+xxx,en,L3,profanity,,,1
+yaoi,en,L3,profanity,,,1
+yellow showers,en,L3,profanity,,,1
+yiffy,en,L3,profanity,,,1
+zoophilia,en,L3,profanity,,,1
+13点,zh,L3,profanity,,,1
+三级片,zh,L3,profanity,,,1
+下三烂,zh,L3,profanity,,,1
+下贱,zh,L3,profanity,,,1
+个老子的,zh,L3,profanity,,,1
+九游,zh,L3,profanity,,,1
+乳交,zh,L3,profanity,,,1
+乳头,zh,L3,profanity,,,1
+乳房,zh,L3,profanity,,,1
+乳波臀浪,zh,L3,profanity,,,1
+交配,zh,L3,profanity,,,1
+仆街,zh,L3,profanity,,,1
+他奶奶,zh,L3,profanity,,,1
+他奶奶的,zh,L3,profanity,,,1
+他奶娘的,zh,L3,profanity,,,1
+他妈,zh,L3,profanity,,,1
+他妈ㄉ王八蛋,zh,L3,profanity,,,1
+他妈地,zh,L3,profanity,,,1
+他妈的,zh,L3,profanity,,,1
+他娘,zh,L3,profanity,,,1
+他马的,zh,L3,profanity,,,1
+你个傻比,zh,L3,profanity,,,1
+你他马的,zh,L3,profanity,,,1
+你全家,zh,L3,profanity,,,1
+你奶奶的,zh,L3,profanity,,,1
+你她马的,zh,L3,profanity,,,1
+你妈,zh,L3,profanity,,,1
+你妈的,zh,L3,profanity,,,1
+你娘,zh,L3,profanity,,,1
+你娘卡好,zh,L3,profanity,,,1
+你娘咧,zh,L3,profanity,,,1
+你它妈的,zh,L3,profanity,,,1
+你它马的,zh,L3,profanity,,,1
+你是鸡,zh,L3,profanity,,,1
+你是鸭,zh,L3,profanity,,,1
+你老味,zh,L3,profanity,,,1
+你老母,zh,L3,profanity,,,1
+你老闆,zh,L3,profanity,,,1
+你马的,zh,L3,profanity,,,1
+做爱,zh,L3,profanity,,,1
+傻比,zh,L3,profanity,,,1
+傻逼,zh,L3,profanity,,,1
+册那,zh,L3,profanity,,,1
+冚家拎,zh,L3,profanity,,,1
+冚家鏟,zh,L3,profanity,,,1
+军妓,zh,L3,profanity,,,1
+几八,zh,L3,profanity,,,1
+几叭,zh,L3,profanity,,,1
+几巴,zh,L3,profanity,,,1
+几芭,zh,L3,profanity,,,1
+刚度,zh,L3,profanity,,,1
+刚瘪三,zh,L3,profanity,,,1
+包皮,zh,L3,profanity,,,1
+十三点,zh,L3,profanity,,,1
+卖b,zh,L3,profanity,,,1
+卖比,zh,L3,profanity,,,1
+卖淫,zh,L3,profanity,,,1
+卵子,zh,L3,profanity,,,1
+双峰微颤,zh,L3,profanity,,,1
+口交,zh,L3,profanity,,,1
+口肯,zh,L3,profanity,,,1
+叫床,zh,L3,profanity,,,1
+吃屎,zh,L3,profanity,,,1
+后庭,zh,L3,profanity,,,1
+吹箫,zh,L3,profanity,,,1
+咸家伶,zh,L3,profanity,,,1
+咸家鏟,zh,L3,profanity,,,1
+塞你公,zh,L3,profanity,,,1
+塞你娘,zh,L3,profanity,,,1
+塞你母,zh,L3,profanity,,,1
+塞你爸,zh,L3,profanity,,,1
+塞你老师,zh,L3,profanity,,,1
+塞你老母,zh,L3,profanity,,,1
+处女,zh,L3,profanity,,,1
+外阴,zh,L3,profanity,,,1
+大卵子,zh,L3,profanity,,,1
+大卵泡,zh,L3,profanity,,,1
+大鸡巴,zh,L3,profanity,,,1
+奶奶的熊,zh,L3,profanity,,,1
+奶子,zh,L3,profanity,,,1
+奸你,zh,L3,profanity,,,1
+她妈地,zh,L3,profanity,,,1
+她妈的,zh,L3,profanity,,,1
+她马的,zh,L3,profanity,,,1
+妈b,zh,L3,profanity,,,1
+妈个b,zh,L3,profanity,,,1
+妈个比,zh,L3,profanity,,,1
+妈个老比,zh,L3,profanity,,,1
+妈妈的,zh,L3,profanity,,,1
+妈比,zh,L3,profanity,,,1
+妈的,zh,L3,profanity,,,1
+妈的b,zh,L3,profanity,,,1
+妈逼,zh,L3,profanity,,,1
+妓女,zh,L3,profanity,,,1
+妓院,zh,L3,profanity,,,1
+妳她妈的,zh,L3,profanity,,,1
+妳妈的,zh,L3,profanity,,,1
+妳娘的,zh,L3,profanity,,,1
+妳老母的,zh,L3,profanity,,,1
+妳马的,zh,L3,profanity,,,1
+姘头,zh,L3,profanity,,,1
+姣西,zh,L3,profanity,,,1
+娘个比,zh,L3,profanity,,,1
+娘的,zh,L3,profanity,,,1
+婊子,zh,L3,profanity,,,1
+婊子养的,zh,L3,profanity,,,1
+嫖娼,zh,L3,profanity,,,1
+嫖客,zh,L3,profanity,,,1
+它妈地,zh,L3,profanity,,,1
+它妈的,zh,L3,profanity,,,1
+密洞,zh,L3,profanity,,,1
+射你,zh,L3,profanity,,,1
+射精,zh,L3,profanity,,,1
+小乳头,zh,L3,profanity,,,1
+小卵子,zh,L3,profanity,,,1
+小卵泡,zh,L3,profanity,,,1
+小瘪三,zh,L3,profanity,,,1
+小肉粒,zh,L3,profanity,,,1
+小骚比,zh,L3,profanity,,,1
+小骚货,zh,L3,profanity,,,1
+小鸡巴,zh,L3,profanity,,,1
+小鸡鸡,zh,L3,profanity,,,1
+屁眼,zh,L3,profanity,,,1
+屁股,zh,L3,profanity,,,1
+屎忽,zh,L3,profanity,,,1
+巨乳,zh,L3,profanity,,,1
+干x娘,zh,L3,profanity,,,1
+干七八,zh,L3,profanity,,,1
+干你,zh,L3,profanity,,,1
+干你妈,zh,L3,profanity,,,1
+干你娘,zh,L3,profanity,,,1
+干你老母,zh,L3,profanity,,,1
+干你良,zh,L3,profanity,,,1
+干妳妈,zh,L3,profanity,,,1
+干妳娘,zh,L3,profanity,,,1
+干妳老母,zh,L3,profanity,,,1
+干妳马,zh,L3,profanity,,,1
+干您娘,zh,L3,profanity,,,1
+干机掰,zh,L3,profanity,,,1
+干死cs,zh,L3,profanity,,,1
+干死gm,zh,L3,profanity,,,1
+干死你,zh,L3,profanity,,,1
+干死客服,zh,L3,profanity,,,1
+强奸,zh,L3,profanity,,,1
+强奸你,zh,L3,profanity,,,1
+性交,zh,L3,profanity,,,1
+性器,zh,L3,profanity,,,1
+性无能,zh,L3,profanity,,,1
+性爱,zh,L3,profanity,,,1
+情色,zh,L3,profanity,,,1
+想上你,zh,L3,profanity,,,1
+懆您妈,zh,L3,profanity,,,1
+懆您娘,zh,L3,profanity,,,1
+懒8,zh,L3,profanity,,,1
+懒八,zh,L3,profanity,,,1
+懒叫,zh,L3,profanity,,,1
+懒教,zh,L3,profanity,,,1
+成人,zh,L3,profanity,,,1
+我操你祖宗十八代,zh,L3,profanity,,,1
+扒光,zh,L3,profanity,,,1
+打炮,zh,L3,profanity,,,1
+打飞机,zh,L3,profanity,,,1
+抽插,zh,L3,profanity,,,1
+招妓,zh,L3,profanity,,,1
+插你,zh,L3,profanity,,,1
+插死你,zh,L3,profanity,,,1
+撒尿,zh,L3,profanity,,,1
+操你,zh,L3,profanity,,,1
+操你全家,zh,L3,profanity,,,1
+操你奶奶,zh,L3,profanity,,,1
+操你妈,zh,L3,profanity,,,1
+操你娘,zh,L3,profanity,,,1
+操你祖宗,zh,L3,profanity,,,1
+操你老妈,zh,L3,profanity,,,1
+操你老母,zh,L3,profanity,,,1
+操妳,zh,L3,profanity,,,1
+操妳全家,zh,L3,profanity,,,1
+操妳妈,zh,L3,profanity,,,1
+操妳娘,zh,L3,profanity,,,1
+操妳祖宗,zh,L3,profanity,,,1
+操机掰,zh,L3,profanity,,,1
+操比,zh,L3,profanity,,,1
+操逼,zh,L3,profanity,,,1
+放荡,zh,L3,profanity,,,1
+日他娘,zh,L3,profanity,,,1
+日你,zh,L3,profanity,,,1
+日你妈,zh,L3,profanity,,,1
+日你老娘,zh,L3,profanity,,,1
+日你老母,zh,L3,profanity,,,1
+日批,zh,L3,profanity,,,1
+月经,zh,L3,profanity,,,1
+机八,zh,L3,profanity,,,1
+机巴,zh,L3,profanity,,,1
+机机歪歪,zh,L3,profanity,,,1
+杂种,zh,L3,profanity,,,1
+浪叫,zh,L3,profanity,,,1
+淫乱,zh,L3,profanity,,,1
+淫妇,zh,L3,profanity,,,1
+淫棍,zh,L3,profanity,,,1
+淫水,zh,L3,profanity,,,1
+淫秽,zh,L3,profanity,,,1
+淫荡,zh,L3,profanity,,,1
+淫西,zh,L3,profanity,,,1
+湿透的内裤,zh,L3,profanity,,,1
+激情,zh,L3,profanity,,,1
+灨你娘,zh,L3,profanity,,,1
+烂货,zh,L3,profanity,,,1
+烂逼,zh,L3,profanity,,,1
+狗屁,zh,L3,profanity,,,1
+狗日,zh,L3,profanity,,,1
+狗狼养的,zh,L3,profanity,,,1
+玉杵,zh,L3,profanity,,,1
+王八蛋,zh,L3,profanity,,,1
+瓜娃子,zh,L3,profanity,,,1
+瓜婆娘,zh,L3,profanity,,,1
+瓜批,zh,L3,profanity,,,1
+瘪三,zh,L3,profanity,,,1
+白烂,zh,L3,profanity,,,1
+白痴,zh,L3,profanity,,,1
+白癡,zh,L3,profanity,,,1
+硬膠,zh,L3,profanity,,,1
+祖宗,zh,L3,profanity,,,1
+私服,zh,L3,profanity,,,1
+笨實,zh,L3,profanity,,,1
+笨蛋,zh,L3,profanity,,,1
+粉腸,zh,L3,profanity,,,1
+精子,zh,L3,profanity,,,1
+老二,zh,L3,profanity,,,1
+老味,zh,L3,profanity,,,1
+老母,zh,L3,profanity,,,1
+老瘪三,zh,L3,profanity,,,1
+老骚比,zh,L3,profanity,,,1
+老骚货,zh,L3,profanity,,,1
+肉壁,zh,L3,profanity,,,1
+肉棍子,zh,L3,profanity,,,1
+肉棒,zh,L3,profanity,,,1
+肉缝,zh,L3,profanity,,,1
+肛交,zh,L3,profanity,,,1
+肥西,zh,L3,profanity,,,1
+色情,zh,L3,profanity,,,1
+花柳,zh,L3,profanity,,,1
+荡妇,zh,L3,profanity,,,1
+贝肉,zh,L3,profanity,,,1
+贱b,zh,L3,profanity,,,1
+贱人,zh,L3,profanity,,,1
+贱货,zh,L3,profanity,,,1
+贼你妈,zh,L3,profanity,,,1
+赛你老母,zh,L3,profanity,,,1
+赛妳阿母,zh,L3,profanity,,,1
+赣您娘,zh,L3,profanity,,,1
+躝癱,zh,L3,profanity,,,1
+轮奸,zh,L3,profanity,,,1
+迷药,zh,L3,profanity,,,1
+逼样,zh,L3,profanity,,,1
+野鸡,zh,L3,profanity,,,1
+阳具,zh,L3,profanity,,,1
+阳萎,zh,L3,profanity,,,1
+阴唇,zh,L3,profanity,,,1
+阴户,zh,L3,profanity,,,1
+阴核,zh,L3,profanity,,,1
+阴毛,zh,L3,profanity,,,1
+阴茎,zh,L3,profanity,,,1
+阴道,zh,L3,profanity,,,1
+阴部,zh,L3,profanity,,,1
+陰莖,zh,L3,profanity,,,1
+雞巴,zh,L3,profanity,,,1
+靠北,zh,L3,profanity,,,1
+靠母,zh,L3,profanity,,,1
+靠爸,zh,L3,profanity,,,1
+靠背,zh,L3,profanity,,,1
+靠腰,zh,L3,profanity,,,1
+驶你公,zh,L3,profanity,,,1
+驶你娘,zh,L3,profanity,,,1
+驶你母,zh,L3,profanity,,,1
+驶你爸,zh,L3,profanity,,,1
+驶你老师,zh,L3,profanity,,,1
+驶你老母,zh,L3,profanity,,,1
+骚比,zh,L3,profanity,,,1
+骚货,zh,L3,profanity,,,1
+骚逼,zh,L3,profanity,,,1
+鬼公,zh,L3,profanity,,,1
+鸡8,zh,L3,profanity,,,1
+鸡八,zh,L3,profanity,,,1
+鸡叭,zh,L3,profanity,,,1
+鸡吧,zh,L3,profanity,,,1
+鸡奸,zh,L3,profanity,,,1
+鸡巴,zh,L3,profanity,,,1
+鸡芭,zh,L3,profanity,,,1
+鸡鸡,zh,L3,profanity,,,1
+龟儿子,zh,L3,profanity,,,1
+龟头,zh,L3,profanity,,,1

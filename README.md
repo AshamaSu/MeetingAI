@@ -41,6 +41,12 @@ wordlists/sensitive.csv（volume 挂载，按 mtime 热加载）：
 列 term,lang,level,category,variants,regex,enabled；兼容 lite words.txt 两列格式。
 印尼语变体手写进 variants（空格分隔）；LLM 兜底词形/委婉/错字。
 
+id 脏话词表来自 [drizki/indonesian-badwords](https://github.com/drizki/indonesian-badwords)（MIT，commit `cd5ea59`）：只取 reviewed-core、非地区语词形，按词义聚合；severity 3-4 → L2，severity 2 → L3，L1 不用于脏话。
+
+en/zh 脏话词表来自 [LDNOOBW](https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words)（CC BY 4.0，master）：全量导入后剔除归一化空值、纯数字/符号、单字符及非中文短条目（修改说明见 CSV 注释），等级统一 L3、category=profanity。
+
+词表热加载，但历史录音需 `POST /rescan-all` 才会用新词重算。
+
 ## 词表与重扫操作示例
 
 ```bash

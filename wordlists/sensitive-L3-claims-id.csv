@@ -1,0 +1,5 @@
+term,lang,level,category,variants,regex,enabled
+garansi seumur hidup,id,L3,claims,,,1
+kelas dunia,id,L3,claims,,,1
+tanpa risiko,id,L3,claims,,,1
+tidak ada masalah,id,L3,claims,,,1

@@ -1,0 +1,7 @@
+term,lang,level,category,variants,regex,enabled
+bribe,en,L1,compliance,bribery bribes,,1
+kickback,en,L1,compliance,kickbacks,,1
+money laundering,en,L1,compliance,,,1
+off the books,en,L1,compliance,,,1
+pay me directly,en,L1,compliance,,,1
+send me the customer list,en,L1,compliance,,,1

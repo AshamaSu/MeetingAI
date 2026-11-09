@@ -1,0 +1,7 @@
+term,lang,level,category,variants,regex,enabled
+daftar nasabah,id,L2,commitment,,,1
+data internal,id,L2,commitment,,,1
+dijamin untung,id,L2,commitment,,,1
+garansi pasti,id,L2,commitment,,,1
+harga pokok,id,L2,commitment,,,1
+rahasia dagang,id,L2,commitment,,,1

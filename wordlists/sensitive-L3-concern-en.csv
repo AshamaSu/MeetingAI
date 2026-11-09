@@ -1,0 +1,4 @@
+term,lang,level,category,variants,regex,enabled
+facade,en,L3,concern,,,1
+illusion,en,L3,concern,,,1
+jargon,en,L3,concern,jargons,,1

@@ -1,0 +1,6 @@
+term,lang,level,category,variants,regex,enabled
+bocorkan data nasabah,id,L1,compliance,membocorkan,,1
+gratifikasi,id,L1,compliance,,,1
+jangan lewat sistem,id,L1,compliance,,,1
+kirim ke rekening pribadi,id,L1,compliance,,,1
+pencucian uang,id,L1,compliance,,,1

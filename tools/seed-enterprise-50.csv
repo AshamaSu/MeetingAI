@@ -1,0 +1,58 @@
+term,lang,level,category,variants,regex,enabled
+把客户名单发我,zh,L1,compliance,发我私人微信 导出客户名单,,1
+走我个人账户,zh,L1,compliance,转我私人账户 走我的账户,,1
+别走系统,zh,L1,compliance,不要走系统 绕过系统,,1
+回扣,zh,L1,compliance,吃回扣 拿回扣,,1
+做假账,zh,L1,compliance,两套账 做两套账,,1
+洗钱,zh,L1,compliance,,,1
+send me the customer list,en,L1,compliance,,,1
+off the books,en,L1,compliance,,,1
+pay me directly,en,L1,compliance,,,1
+kickback,en,L1,compliance,kickbacks,,1
+bribe,en,L1,compliance,bribery bribes,,1
+money laundering,en,L1,compliance,,,1
+bocorkan data nasabah,id,L1,compliance,membocorkan,,1
+kirim ke rekening pribadi,id,L1,compliance,,,1
+jangan lewat sistem,id,L1,compliance,,,1
+suap,id,L1,compliance,menyuap penyuapan disuap,,1
+gratifikasi,id,L1,compliance,,,1
+pencucian uang,id,L1,compliance,,,1
+客户名单,zh,L2,commitment,,,1
+底价,zh,L2,commitment,最低价,,1
+成本价,zh,L2,commitment,进价,,1
+内部数据,zh,L2,commitment,,,1
+源代码,zh,L2,commitment,,,1
+商业机密,zh,L2,commitment,商业秘密,,1
+customer list,en,L2,commitment,,,1
+cost price,en,L2,commitment,,,1
+internal data,en,L2,commitment,,,1
+source code,en,L2,commitment,,,1
+trade secret,en,L2,commitment,trade secrets,,1
+guaranteed return,en,L2,commitment,guaranteed returns,,1
+daftar nasabah,id,L2,commitment,,,1
+harga pokok,id,L2,commitment,,,1
+data internal,id,L2,commitment,,,1
+rahasia dagang,id,L2,commitment,,,1
+dijamin untung,id,L2,commitment,,,1
+garansi pasti,id,L2,commitment,,,1
+绝对没问题,zh,L3,claims,绝对可靠,,1
+零风险,zh,L3,claims,,,1
+国家级,zh,L3,claims,世界级,,1
+终身有效,zh,L3,claims,永久有效,,1
+absolutely no problem,en,L3,claims,,,1
+zero risk,en,L3,claims,,,1
+world-class,en,L3,claims,,,1
+lifetime guarantee,en,L3,claims,,,1
+tidak ada masalah,id,L3,claims,,,1
+tanpa risiko,id,L3,claims,,,1
+kelas dunia,id,L3,claims,,,1
+garansi seumur hidup,id,L3,claims,,,1
+投诉,zh,L3,complaint,要投诉,,1
+律师函,zh,L3,complaint,起诉 找媒体,,1
+退款申请,zh,L3,complaint,要求退款,,1
+complain,en,L3,complaint,complaint complaints,,1
+lawsuit,en,L3,complaint,lawsuits,,1
+refund request,en,L3,complaint,refund requests,,1
+komplain,id,L3,complaint,komplainnya dikomplain,,1
+somasi,id,L3,complaint,,,1
+gugatan,id,L3,complaint,,,1

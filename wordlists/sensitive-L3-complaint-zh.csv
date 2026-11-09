@@ -1,0 +1,4 @@
+term,lang,level,category,variants,regex,enabled
+律师函,zh,L3,complaint,起诉 找媒体,,1
+投诉,zh,L3,complaint,,,1
+退款申请,zh,L3,complaint,要求退款,,1

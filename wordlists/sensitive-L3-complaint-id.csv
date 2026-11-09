@@ -1,0 +1,5 @@
+term,lang,level,category,variants,regex,enabled
+gugatan,id,L3,complaint,,,1
+keluhan,id,L3,complaint,,,1
+komplain,id,L3,complaint,komplainnya dikomplain mengkomplain,,1
+somasi,id,L3,complaint,,,1

@@ -1,0 +1,6 @@
+term,lang,level,category,variants,regex,enabled
+做假账,zh,L1,compliance,两套账 做两套账,,1
+别走系统,zh,L1,compliance,不要走系统 绕过系统,,1
+把客户名单发我,zh,L1,compliance,发我私人微信 导出客户名单,,1
+洗钱,zh,L1,compliance,,,1
+走我个人账户,zh,L1,compliance,转我私人账户 走我的账户,,1

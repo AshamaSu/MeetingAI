@@ -37,9 +37,68 @@ uvicorn app.main:app --port 8898
 
 ## 词表
 
-wordlists/sensitive.csv（volume 挂载，按 mtime 热加载）：
-列 term,lang,level,category,variants,regex,enabled；兼容 lite words.txt 两列格式。
-印尼语变体手写进 variants（空格分隔）；LLM 兜底词形/委婉/错字。
+**运行时只读一份**：`wordlists/sensitive.csv`（volume 挂载，按 mtime 热加载），
+列 `term,lang,level,category,variants,regex,enabled`；兼容 lite `words.txt` 两列格式。
+印尼语变体手写进 `variants`（空格分隔，单 token）；LLM 兜底词形/委婉/错字。
+
+**编辑源是分片**：`wordlists/sensitive-*.csv` 按「级别-类别-语种」分开维护，
+由 `tools/build_wordlist.sh` 合并生成 `sensitive.csv`。服务侧 `app/` 零改动，
+生成的文件仍走 `PUT /wordlist`（自带校验 / `.bak` / 热加载）。
+优先级 **分片 > 手工 PUT**：手工 PUT 的内容会在下次生成时被分片覆盖，
+`PUT` 只作为生成文件的上传通道与回滚应急通道。
+
+### 分片命名与规则
+
+文件名 `sensitive-<LEVEL>-<CATEGORY>-<LANG>.csv`，例
+`sensitive-L2-finance-id.csv`、`sensitive-L3-risk-en.csv`。
+
+- `LEVEL` 仅 `L1|L2|L3` 大写；`CATEGORY` 大小写归一（`Finance`→`finance`、`RISK`→`risk`），
+  自由文本不设枚举；`LANG` 小写 `zh/en/id`。
+- 每片首行须为 **7 列表头**（列名不强制，脚本剥掉后输出统一用标准列名）；
+  文件名只用于发现 / 分组 / 硬校验，不覆盖 CSV 列。
+- 生成期硬校验：7 列、字段内无逗号、`level`/`lang` 必须与文件名一致、
+  `enabled` ∈ `0/1`、跨分片 `term,lang` 不可重复、总量 ≤ 200000 字节。
+  任一项不符即报错（避免 `parse_wordlist` 对非法 level 静默丢行导致整片无声失效）。
+- 输出按 `(level, lang, category, term)` 确定性排序，字节稳定，`diff` / `sha256sum` 可复现。
+- 合并不能 raw 拼接整份文本：`app/lexicon.py` 的 `parse_wordlist` 用「整段文本首行」
+  判断 CSV 格式，脚本改为「每片去掉表头 + 只留一个总表头」。
+
+### 从单体词表拆分（迁移 / 加词）
+
+首次把单体 `sensitive.csv` 迁到分片、或把一批新词并入时，用 `tools/split_wordlist.sh`：
+
+```bash
+# 预览将写哪些分片（不写盘）
+bash tools/split_wordlist.sh --add tools/seed-enterprise-50.csv --dry-run
+
+# 按 (level, category, lang) 拆分，并把 --add 的词并入（存量优先去重）
+bash tools/split_wordlist.sh --add tools/seed-enterprise-50.csv
+```
+
+- 按 `(term, lang)` 去重，`--input` 在前、`--add` 在后 → **存量优先**，避免重生成丢词或改级。
+- `category` 归一为小写并限制在 `[a-z0-9_-]`，用于文件名；只输出统计，不打印词条。
+- 目标分片已存在且非空时默认拒绝写入，需 `--force`。
+- `tools/seed-enterprise-50.csv` 是一次性企业级初始词种子（中/英/印尼三语，约 50 条），仅作输入，运行时以分片为准。
+
+### 生成与上传
+
+```bash
+# 1) 先看统计、确定要裁掉的类别（--report 只打印分类计数，不打印词条）
+bash tools/build_wordlist.sh --check --report
+
+# 2) 按 category 整类剔除企业不关注的网络用语，生成工作副本
+bash tools/build_wordlist.sh --drop-category profanity,insult --output ./sensitive.csv
+
+# 3) 沿用部署清单 §6.5：PUT /wordlist → 回读 diff+sha256 → POST /rescan-all
+```
+
+- `--check` 只校验并比对 sha256、不写盘（有漂移 exit 1）；`--report` 加打按类别条数。
+- `--drop-category` 按 category 整类剔除；`--stdout` 把生成内容送 stdout（统计走 stderr）；
+  `--show-diff` 配合 `--check` 才打印行级 diff（会显示词条，需显式开启）。
+- `bash tools/test_build_wordlist.sh` 是纯合成数据的自检，不读真实词表。
+- 生成的 `./sensitive.csv` 同时复制进交付包的 `wordlists/`，作为全新部署的开箱快照。
+
+**上游来源**（历史口径，保留备查）：
 
 id 脏话词表来自 [drizki/indonesian-badwords](https://github.com/drizki/indonesian-badwords)（MIT，commit `cd5ea59`）：只取 reviewed-core、非地区语词形，按词义聚合；severity 3-4 → L2，severity 2 → L3，L1 不用于脏话。
 
@@ -48,6 +107,10 @@ en/zh 脏话词表来自 [LDNOOBW](https://github.com/LDNOOBW/List-of-Dirty-Naug
 词表热加载，但历史录音需 `POST /rescan-all` 才会用新词重算。
 
 ## 词表与重扫操作示例
+
+> 推荐路径：改分片 → `tools/build_wordlist.sh` 生成 `./sensitive.csv` → 下面的 PUT。
+> 下面的「下载 → 手工加一行 → PUT」仅作为应急回滚示例；手工 PUT 会被下次生成覆盖。
+> Part A（`speakr-sensitive-lite`）仍用单文件 `words.txt`，保持不动、不参与分片。
 
 ```bash
 # 下载当前词表(查看全部关键词与各级启用数)

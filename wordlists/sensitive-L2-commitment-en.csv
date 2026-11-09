@@ -1,0 +1,7 @@
+term,lang,level,category,variants,regex,enabled
+cost price,en,L2,commitment,,,1
+customer list,en,L2,commitment,,,1
+guaranteed return,en,L2,commitment,guaranteed returns,,1
+internal data,en,L2,commitment,,,1
+source code,en,L2,commitment,,,1
+trade secret,en,L2,commitment,trade secrets,,1

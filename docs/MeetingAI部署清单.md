@@ -4,6 +4,7 @@
 > 依据：现网服务器逐项核查（容器、镜像、挂载、环境变量、端口、卷），非文档推测。
 > 目标：部署工程师只按本清单即可把同一套系统重建到新机器，**不含已上传的音频文件**。
 > 密钥不在本文出现，随包以加密方式单独交付 `.env`。
+> 服务器主机名/IP 统一脱敏为 `<hostname>`；`127.0.0.1`、`0.0.0.0` 等本机/绑定地址与 hf-mirror.com、api.openai.com 等公共服务域名保留原样。
 
 ---
 
@@ -13,14 +14,14 @@
 
 ```
 浏览器
-  │  http://<host>:8899
+  │  http://<hostname>:8899
   ▼
 ┌─────────────────────────────┐        ┌──────────────────────────┐
 │ speakr (lenovo-speaker:v1)  │        │ sensitive-filter         │
 │ 会议上传/转写/总结/分享     │◀───────│ 敏感词检测/标签备注回写  │
 │ 8899                        │ webhook│ 127.0.0.1:8898           │
 └──────────┬──────────────────┘        └──────────────────────────┘
-           │ http://<host>:9010（ASR_BASE_URL）
+           │ http://<hostname>:9010（ASR_BASE_URL）
            ▼
 ┌─────────────────────────────┐        ┌──────────────────────────┐
 │ whisperx-asr-api            │        │ 外部 LLM（qwen，总结/标题）│
@@ -50,7 +51,7 @@
 | sensitive-filter | `127.0.0.1:8898:8898` | 仅本机 | 浏览器不直连；运维走 SSH 隧道 |
 
 - 三个容器分属两个 compose 网络：`speakr_default`、`whisperx_default`，**互不相通**。
-- speakr 调 ASR 走的是宿主机 IP + 发布端口（现网 `ASR_BASE_URL=http://172.21.16.10:9010`）。
+- speakr 调 ASR 走的是宿主机 IP + 发布端口（现网 `ASR_BASE_URL=http://<hostname>:9010`）。
   新环境必须改成新宿主机的内网 IP；也可把两个 compose 合并/共享外部网络后改用 `http://whisperx-asr-api:9000`。
 - sensitive-filter 调 speakr 走 compose 内服务名：`SPEAKR_URL=http://speakr:8899`（同属 `speakr_default`，无需改）。
 - 宿主机 nginx **没有**代理这三个端口，全部为 docker-proxy 直出。
@@ -69,7 +70,7 @@
 | 品牌覆盖文件 | `/data/speakr/brand/` | 1.4 MB / 27 个文件 | 全部只读挂载进 speakr 容器 |
 | 敏感词服务源码 | `/data/speakr/sensitive-filter/`（排除 `data/`） | 168 KB | 用 `build:` 现场构建，或直接发镜像 |
 | 敏感词服务配置 | `sensitive-filter/.env` | 308 B | 含 speakr API Token / Webhook Secret |
-| 词表种子 | `sensitive-filter/wordlists/sensitive.csv` | 22 KB | 2026-11-06 扩至 740 条；现网以服务器版本为准，见 §6.5 |
+| 词表种子 | `sensitive-filter/wordlists/`（`sensitive-*.csv` 分片 + 生成的 `sensitive.csv`） | 22 KB | 分片为编辑源，`tools/build_wordlist.sh` 合并生成；现网以服务器版本为准，见 §6.5 |
 | whisperx 编排 | `/data/whisperx/docker-compose.yml` | 4.6 KB | |
 | whisperx 配置 | `/data/whisperx/.env` | 198 B | 含 HF_TOKEN |
 | ASR 模型缓存（二选一） | 卷 `whisperx_whisperx-cache` | 12 GB | 离线环境必须带；联网环境可首启自动下载（`HF_ENDPOINT=https://hf-mirror.com`） |
@@ -137,11 +138,11 @@ brand/static/manifest.json                    → /app/static/manifest.json
 
 | 分组 | 键 | 现网值 / 新环境要求 |
 |---|---|---|
-| 文本模型（总结/标题/问答） | `TEXT_MODEL_BASE_URL` | `https://vlm-pgx.sightai.tech:4433/qwen/v1` **外部依赖，需通网或替换** |
+| 文本模型（总结/标题/问答） | `TEXT_MODEL_BASE_URL` | `https://<hostname>:4433/qwen/v1` **外部依赖，需通网或替换** |
 | | `TEXT_MODEL_API_KEY` | `<REDACTED>` |
 | | `TEXT_MODEL_NAME` | `qwen3.8` |
 | | `GPT5_REASONING_EFFORT` / `GPT5_VERBOSITY` | `medium` / `medium` |
-| 转写后端 | `ASR_BASE_URL` | `http://172.21.16.10:9010` ← **新环境必须改** |
+| 转写后端 | `ASR_BASE_URL` | `http://<hostname>:9010` ← **新环境必须改** |
 | | `ASR_TIMEOUT` | `1800` |
 | | `ASR_DIARIZE` | `true` |
 | | `CHUNK_LIMIT` | `20MB` |
@@ -200,7 +201,7 @@ brand/static/manifest.json                    → /app/static/manifest.json
 
 ---
 
-## 5. 重新打包（在现网 `82.156.1.74` 执行）
+## 5. 重新打包（在现网 `<hostname>` 执行）
 
 > 前提：`/data` 剩余空间 ≥ 30 GB（现网仅剩 46 GB，务必先清理旧包 `deploy_data.tar.gz`、`all_data/*.tar` 共约 14 GB）。
 
@@ -243,7 +244,7 @@ tar czf /data/release-speaker-$(date +%Y%m%d).tar.gz -C /data $(basename $REL)
 - Ubuntu 22.04/24.04，Docker ≥ 24、Docker Compose ≥ v2（现网 v5.0.2）
 - 磁盘 ≥ 60 GB（镜像 14 GB + 模型缓存 12 GB + 音频增长），内存 ≥ 16 GB
 - 仅 whisperx 所在机器需要：NVIDIA 驱动 + NVIDIA Container Toolkit，GPU 显存 ≥ 16 GB
-- 网络：能访问外部 LLM（`vlm-pgx.sightai.tech:4433`）或已替换为内网模型；离线环境跳过模型下载改用缓存包
+- 网络：能访问外部 LLM（`<hostname>:4433`）或已替换为内网模型；离线环境跳过模型下载改用缓存包
 
 ### 6.1 导入镜像
 
@@ -286,13 +287,13 @@ docker compose ps
 
 ### 6.4 建立账号与 Webhook（新库必做）
 
-1. 浏览器打开 `http://<host>:8899`，用 `ADMIN_EMAIL` / `ADMIN_PASSWORD` 登录（首次启动按 .env 建管理员）。
+1. 浏览器打开 `http://<hostname>:8899`，用 `ADMIN_EMAIL` / `ADMIN_PASSWORD` 登录（首次启动按 .env 建管理员）。
 2. 在 speakr「设置 → API Token」为**每个需要检测的账号**各建一个 Token，scope 勾选 `read, write, webhooks`。
    - 多账号：全部 Token 逗号拼接写入 `sensitive-filter/.env` 的 `SPEAKR_TOKENS`，第一个同时填入 `SPEAKR_TOKEN`。
 3. 逐账号创建 webhook（**speakr 按录音归属者投递，一个账号一个 webhook**）：
 
 ```bash
-curl -s -X POST http://<host>:8899/api/v1/webhooks \
+curl -s -X POST http://<hostname>:8899/api/v1/webhooks \
   -H "Authorization: Bearer <该账号 token>" -H "Content-Type: application/json" \
   -d '{"name":"sensitive-filter","url":"http://sensitive-filter:8898/hooks/speakr",
        "events":["recording.transcription.completed","recording.summary.completed"],
@@ -307,11 +308,13 @@ curl -s -X POST http://<host>:8899/api/v1/webhooks \
 docker compose up -d sensitive-filter
 ```
 
-### 6.5 词表更新与验证（以 `./sensitive.csv` 为例）
+### 6.5 词表更新与验证（分片生成 `./sensitive.csv`）
 
 > `8898` 只监听 `127.0.0.1`：以下命令在宿主机执行；在本地执行先开隧道
-> `ssh -N -L 8898:127.0.0.1:8898 <host>`，并把 `127.0.0.1:8898` 换成同一地址即可。
+> `ssh -N -L 8898:127.0.0.1:8898 <hostname>`，并把 `127.0.0.1:8898` 换成同一地址即可。
 > 若配置了 `ALERT_USER/ALERT_PASS`，所有 curl 追加 `-u "$ALERT_USER:$ALERT_PASS"`（否则 403）。
+> 词表**编辑源**是 `wordlists/sensitive-*.csv` 分片，`./sensitive.csv` 只是脚本生成的工作副本；
+> 命名 / 校验 / 裁剪规则见 `sensitive-filter/README.md` 与 `tools/build_wordlist.sh`。
 
 **1）先拉取现网版本（服务器是权威源，必须先备份）**
 
@@ -327,7 +330,28 @@ cp ./sensitive.csv ./sensitive.csv.$(date +%Y%m%d-%H%M%S).bak
 python3 -c "import json; d=json.load(open('/tmp/wordlist.json')); print(d['terms'], d['enabled_by_level'])"
 ```
 
-**2）编辑 `./sensitive.csv`**
+**2）编辑分片并生成 `./sensitive.csv`**
+
+分片命名 `sensitive-<L1|L2|L3>-<Category>-<lang>.csv`（如 `sensitive-L2-finance-id.csv`），
+每片首行须为 7 列表头（列名不强制，脚本剥掉后输出统一用标准列名）；
+文件名只做分组与硬校验，不覆盖 CSV 列。
+
+```bash
+cd /data/speakr/sensitive-filter
+
+# 先看统计、确定要裁掉的类别（--report 只打印分类计数，不打印词条）
+bash tools/build_wordlist.sh --check --report
+
+# 按 category 整类剔除企业不关注的网络用语，生成工作副本
+bash tools/build_wordlist.sh --drop-category profanity,insult --output ./sensitive.csv
+```
+
+脚本内置硬校验：7 列、字段内无逗号、`level`/`lang` 与文件名一致、`enabled` ∈ `0/1`、
+跨分片 `term,lang` 不重复、总量 ≤ 200000 字节；输出按 `(level,lang,category,term)`
+确定性排序、字节稳定。`--check` 只校验不写盘；`bash tools/test_build_wordlist.sh`
+是纯合成数据的自检，不读真实词表。服务侧 `app/` 零改动、不新增接口。
+
+生成文件仍需满足：
 
 - 7 列：`term,lang,level,category,variants,regex,enabled`；`#` 开头为注释。
 - `variants` 用空格分隔，**不能放多词短语**（会被拆成多个词）；多词条目直接写进 `term`。
@@ -336,7 +360,9 @@ python3 -c "import json; d=json.load(open('/tmp/wordlist.json')); print(d['terms
 - 文件上限 **200000 字节**（超过返回 413）。
 - 文件需以换行结尾：PUT 会自动补一个，若原文件没有，回读 diff/hash 会差一字节。
 
-**3）上传前自检（不依赖服务）**
+**3）上传前自检（对生成文件二次核对，不依赖服务）**
+
+> 第 2 步的 `build_wordlist.sh` 已完成硬校验；这里再对生成文件独立核对一次。
 
 ```bash
 wc -c ./sensitive.csv                      # 必须 < 200000
@@ -374,6 +400,9 @@ curl -sS -X PUT http://127.0.0.1:8898/wordlist \
 ```
 
 常见失败：`413` 文件超限、`422` 解析不到有效行或 regex 非法、`403` 未带 Basic Auth。
+
+> 上传的是**脚本生成**的 `./sensitive.csv`。`PUT` 只作为生成文件的上传通道与回滚应急通道；
+> 优先级 **分片 > 手工 PUT**，手工 PUT 的内容会在下次 `build_wordlist.sh` 生成时被分片覆盖。
 
 **5）验证生效（按顺序做）**
 
@@ -419,15 +448,23 @@ curl -sS -X PUT http://127.0.0.1:8898/wordlist \
 
 注意：回滚这次 PUT 会把 `.bak` 覆盖成"刚撤下的坏版本"，所以回滚前先另存 `./sensitive.rollback.csv`。
 
+分片模式下还要回退**分片**：用切换前备份的 `wordlists/sensitive-*.csv` 覆盖，再跑一次
+`build_wordlist.sh` 重新生成；否则只回滚 `sensitive.csv`，下次生成会把坏版本带回来。
+
 **7）同步到交付包**
 
 ```bash
 # 交付包/仓库里的种子必须来自现网，不要用旧文件覆盖
 cp ./sensitive.csv /path/to/release/sensitive-filter/wordlists/sensitive.csv
+# 分片、合并脚本、自检脚本一并带入交付包；服务器 wordlists/ 仍是权威源
+mkdir -p /path/to/release/sensitive-filter/tools
+cp wordlists/sensitive-*.csv /path/to/release/sensitive-filter/wordlists/
+cp tools/build_wordlist.sh tools/test_build_wordlist.sh /path/to/release/sensitive-filter/tools/
 ```
 
 - 词表按 mtime 热加载，PUT 成功后新转写即时生效；历史录音只有执行 `/rescan-all` 才重算。
 - 迁移时若 `rsync` 源码目录，务必保留 `--exclude "wordlists/"`（见 §9.6），否则线上词表会被旧种子覆盖。
+- 分片是编辑源、`sensitive.csv` 是生成产物；改词一律改分片后重跑 `build_wordlist.sh`，不要直接改生成文件。
 
 ### 6.6 前端 widget
 
@@ -458,7 +495,7 @@ tar czf instance.tar.gz -C /data/speakr instance/transcriptions.db \
 |---|---|---|
 | 1 | 容器全 Up | `docker compose ps`（speakr、sensitive-filter 均 Up） |
 | 2 | ASR 健康 | `curl :9010/health` → `healthy` + `loaded_models:["large-v3"]` |
-| 3 | 主站可达 | `curl -I http://<host>:8899` → 302（跳登录） |
+| 3 | 主站可达 | `curl -I http://<hostname>:8899` → 302（跳登录） |
 | 4 | 品牌生效 | 登录页为 Lenovo 标识与配色，非上游默认 |
 | 5 | 检测服务健康 | `curl http://127.0.0.1:8898/healthz` |
 | 6 | 端到端 | 上传一段 1–2 分钟含敏感词的印尼语/中文音频 → 转写完成 → 自动打标签 + 写备注 + 总结追加清单 → 气泡出现竖条 |
@@ -477,7 +514,7 @@ tar czf instance.tar.gz -C /data/speakr instance/transcriptions.db \
 5. **多账号必须各建 webhook**：speakr 按录音归属者投递；只建一个会导致 guest 的录音不被检测。
 6. **词表方向**：服务器版本是权威源，`rsync` 本仓库到服务器时必须 `--exclude "wordlists/"`，否则会把线上词表覆盖成种子。
 7. **`ADMIN_PASSWORD` 只在首次建库生效**：已有库时改 .env 不会改密码。
-8. **8898 仅绑定本机**：调试用 `ssh -N -L 8898:127.0.0.1:8898 <host>`。
+8. **8898 仅绑定本机**：调试用 `ssh -N -L 8898:127.0.0.1:8898 <hostname>`。
 9. **`instance/secret_key` 与数据库成对**：只迁库不迁 key 会导致会话/加密字段异常。
 10. **whisperx 模型缓存卷名**是 `whisperx_whisperx-cache`（compose 项目名前缀），换项目目录名会创建新空卷并重新下载 12 GB。
 11. **磁盘**：现网 `/data` 已用 100%（剩 46 GB），打包前必须清理旧 tar，否则 `docker save` 中途失败留半包。

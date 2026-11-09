@@ -146,7 +146,11 @@ speakr --webhook(transcription.completed)--> sensitive-filter
 
 ### 词表
 
-CSV，整份替换、热加载，支持简式 `L1,词` 与全 schema：
+CSV，整份替换、热加载，支持简式 `L1,词` 与全 schema。运行时只读
+`wordlists/sensitive.csv` 一份；**编辑源是按「级别-类别-语种」拆分的
+`wordlists/sensitive-*.csv` 分片**，由 `speakr-sensitive-filter/tools/build_wordlist.sh`
+合并生成规范文件后再 `PUT /wordlist`（服务侧代码零改动）。命名、校验、
+按 category 裁剪与回滚规则见子模块 README 与部署清单 §6.5。
 
 ```csv
 term,lang,level,category,variants,regex,enabled

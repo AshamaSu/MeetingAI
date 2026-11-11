@@ -150,7 +150,7 @@ CSV，整份替换、热加载，支持简式 `L1,词` 与全 schema。运行时
 `wordlists/sensitive.csv` 一份；**编辑源是按「级别-类别-语种」拆分的
 `wordlists/sensitive-*.csv` 分片**，由 `speakr-sensitive-filter/tools/build_wordlist.sh`
 合并生成规范文件后再 `PUT /wordlist`（服务侧代码零改动）。命名、校验、
-按 category 裁剪与回滚规则见子模块 README 与部署清单 §6.5。
+按 category 裁剪与回滚规则见 `speakr-sensitive-filter/README.md` 与部署清单 §6.5。
 
 ```csv
 term,lang,level,category,variants,regex,enabled
@@ -312,16 +312,15 @@ HF_TOKEN=<token>
 ```
 MeetingAI/
 ├── README.md                    # 本文
-├── .gitmodules
 ├── speakr-sensitive-filter/     # Part B：生产版敏感词检测服务
 └── speakr-sensitive-lite/       # Part A：极简轮询版（单文件 + 词表 + 用户脚本）
 ```
 
 - 音频语料、评测工作区与部署脚本（含凭据）**不入库**，`.gitignore` 已排除 `data/`、`deploy/`、`conn/`、`*.pem`、`*.key`。
-- 克隆需要拉子模块：
+- 两个 sensitive 目录已直接纳入本仓库（非子模块），普通克隆即可：
 
 ```bash
-git clone --recurse-submodules <repo-url>
+git clone <repo-url>
 ```
 
 ## 9. 术语

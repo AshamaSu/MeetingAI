@@ -1,0 +1,15 @@
+<!-- B7 注入片段：并入 speakr 的 templates/includes/loading_overlay.html 末尾
+     （该文件已由 brand patch 挂载，改这一个文件即可，需重启 speakr 一次）。
+
+     方式一（推荐）：内联 widget——8898 无需对浏览器开放，数据自动走 notes 回退通道：
+       1) 服务器上取脚本:  curl -s http://127.0.0.1:8898/widget.js -o /tmp/widget.js
+       2) 把 /tmp/widget.js 的全部内容粘贴到下方第二个 script 标签内。
+
+     方式二：外链 widget——仅当 8898 对浏览器可达（LAN/已开放端口）时：
+       先 script 设置 window.SENSITIVE_FILTER_URL = "http://host:8898"
+       再 script src="http://host:8898/widget.js"
+       此时数据走检测服务 /hits（秒级），notes 仅作兜底。
+-->
+<script>
+  /* 在此粘贴 widget.js 全部内容（方式一） */
+</script>

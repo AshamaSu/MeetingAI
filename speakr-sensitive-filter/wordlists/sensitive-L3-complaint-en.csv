@@ -1,0 +1,4 @@
+term,lang,level,category,variants,regex,enabled
+complain,en,L3,complaint,complaint complaints,,1
+lawsuit,en,L3,complaint,lawsuits,,1
+refund request,en,L3,complaint,refund requests,,1

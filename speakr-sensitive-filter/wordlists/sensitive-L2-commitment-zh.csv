@@ -1,0 +1,7 @@
+term,lang,level,category,variants,regex,enabled
+内部数据,zh,L2,commitment,,,1
+商业机密,zh,L2,commitment,商业秘密,,1
+客户名单,zh,L2,commitment,,,1
+底价,zh,L2,commitment,最低价,,1
+成本价,zh,L2,commitment,进价,,1
+源代码,zh,L2,commitment,,,1

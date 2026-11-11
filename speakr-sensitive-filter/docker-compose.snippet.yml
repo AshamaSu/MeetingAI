@@ -1,0 +1,16 @@
+# B2 步骤 2：追加到 /data/speakr/docker-compose.yml
+# 前置：把本工程上传为 /data/speakr/sensitive-filter/
+services:
+  sensitive-filter:
+    build: ./sensitive-filter
+    container_name: sensitive-filter
+    restart: unless-stopped
+    env_file: ./sensitive-filter/.env
+    environment:
+      # compose 网络内直达 speakr 容器名
+      SPEAKR_URL: http://speakr:8899
+    volumes:
+      - ./sensitive-filter/data:/app/data
+      - ./sensitive-filter/wordlists:/app/wordlists
+    ports:
+      - "127.0.0.1:8898:8898"   # 仅本机可达；浏览器需访问时另行评估（B7.3）

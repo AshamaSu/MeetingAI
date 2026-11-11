@@ -1,0 +1,11 @@
+# 敏感词测试词表（词取自 08_TheMindsetTrap 转写，仅演示，不代表真实敏感词）
+# 格式：词,级别 或 级别,词（支持 , 或 | 分隔；# 开头为注释；级别 L1违禁 > L2警示 > L3关注）
+mindset,L2
+facade,L3
+illusion,L2
+jargon,L3
+buzzword,L1
+
+# ---- 负例：不应命中 ----
+senjata,L1
+武器,L1
